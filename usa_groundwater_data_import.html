@@ -370,44 +370,61 @@ summary {
 </div>
 
 
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>This document is complimentary to “USA Well Water Data.” Please reference “USA Well Water Data” for more information regarding the goals and parameters of the project.</p>
+<p>In this document, we import and work with the USGS groundwater data for all 50 states.</p>
+<div id="attach-packages-and-other-necessary-commands" class="section level3">
+<h3>Attach packages and other necessary commands</h3>
 <pre class="r"><code># Attach packages
 
-library(tidyverse)</code></pre>
-<pre><code>## -- Attaching packages ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- tidyverse 1.2.1 --</code></pre>
-<pre><code>## v ggplot2 3.2.1     v purrr   0.3.2
-## v tibble  2.1.3     v dplyr   0.8.3
-## v tidyr   1.0.0     v stringr 1.4.0
-## v readr   1.3.1     v forcats 0.4.0</code></pre>
-<pre><code>## -- Conflicts ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>library(here)</code></pre>
-<pre><code>## here() starts at C:/Users/annette/Documents/github/usa_groundwater_data</code></pre>
+library(tidyverse)
+library(here)
+
+# Disable scientific notation 
+
+options(scipen=999)</code></pre>
+</div>
+<div id="read-in-data-merge-and-tidy" class="section level3">
+<h3>Read in data, merge, and tidy</h3>
+<p>Read in USGS data for Alabama</p>
+<ul>
+<li>Alabama groundwater data</li>
+<li>Alabama secondary data</li>
+</ul>
 <pre class="r"><code># Attempt to read in USGS Alabama data file 
 
 alabama_gw_usgs &lt;- read_tsv(here::here(&quot;raw_data&quot;, &quot;alabama_raw_import.txt&quot;))</code></pre>
-<pre><code>## Parsed with column specification:
-## cols(
-##   agency_cd = col_character(),
-##   site_no = col_double(),
-##   site_tp_cd = col_character(),
-##   lev_dt = col_character(),
-##   lev_tm = col_time(format = &quot;&quot;),
-##   lev_tz_cd = col_character(),
-##   lev_va = col_double(),
-##   sl_lev_va = col_logical(),
-##   sl_datum_cd = col_logical(),
-##   lev_status_cd = col_character(),
-##   lev_agency_cd = col_character(),
-##   lev_dt_acy_cd = col_character(),
-##   lev_acy_cd = col_double(),
-##   lev_src_cd = col_character(),
-##   lev_meth_cd = col_character(),
-##   lev_age_cd = col_character()
-## )</code></pre>
-<pre><code>## Warning: 1 parsing failure.
-##   row        col expected actual                                                                                     file
-## 10171 lev_acy_cd a double      U &#39;C:/Users/annette/Documents/github/usa_groundwater_data/raw_data/alabama_raw_import.txt&#39;</code></pre>
+<pre class="r"><code># Attempt to read in Secondary USGS data file 
+
+alabama_other_usgs &lt;- read_tsv(here::here(&quot;raw_data&quot;, &quot;alabama_raw_other_import.txt&quot;))</code></pre>
+<p>Merge datasets</p>
+<pre class="r"><code># Attempt to merge alabama_gw_usgs and alabama_other_usgs data frames 
+
+alabama_merge &lt;- alabama_gw_usgs %&gt;% 
+  inner_join(alabama_other_usgs) 
+
+# Check to see if there are any values that didn&#39;t match (using antijoin)
+# No data displayed, therefore everything matched, antijoin will be commented out
+
+# alabama_antijoin &lt;- alabama_gw_usgs %&gt;% 
+#   anti_join(alabama_other_usgs)</code></pre>
+<p>Tidy data <strong>still having issues with lubridate dropping only year values to NA, need to resolve</strong></p>
+<pre class="r"><code># Tidy data to a final version 
+# Remove excess columns 
+# Convert date column from character to date ISO format 
+# Separate month and year into their own columns 
+
+alabama_usgs &lt;- alabama_merge %&gt;% 
+  select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %&gt;% 
+    mutate(
+    level_date = lubridate::ymd(lev_dt),
+    level_month = lubridate::month(level_date, label = TRUE), 
+    level_year = lubridate::year(level_date))
+      
+# as.Date(alabama_usgs$lev_dt, format = &quot;%Y-%m-%d&quot;)</code></pre>
+</div>
+</div>
 
 
 

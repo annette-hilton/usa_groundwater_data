@@ -49,3 +49,17 @@ For each data type we plan to constrain our compilation by the following factors
 **Continuous data** 
 
 - Any continuous data measurements that have more than one measurement per day will be averaged to obtain the mean well water depth for the entire day 
+
+## Data sources 
+
+#### USGS
+
+USGS data has been obtained through two different download portals:
+
+- USGS Groundwater Levels REST Web Service URL Generation Tool
+  - https://waterservices.usgs.gov/rest/GW-Levels-Test-Tool.html
+  
+- National Water Information System: Web Interface
+  - https://waterdata.usgs.gov/al/nwis/inventory
+  
+Citation: **please add citation here**

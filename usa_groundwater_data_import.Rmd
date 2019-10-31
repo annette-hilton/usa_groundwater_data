@@ -6,8 +6,15 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
+# Introduction 
+
+This document is complimentary to "USA Well Water Data." Please reference "USA Well Water Data" for more information regarding the goals and parameters of the project. 
+
+In this document, we import and work with the USGS groundwater data for all 50 states. 
+
+### Attach packages and other necessary commands 
 
 ```{r}
 # Attach packages
@@ -21,6 +28,13 @@ options(scipen=999)
 
 ```
 
+### Read in data, merge, and tidy 
+
+Read in USGS data for Alabama 
+
+- Alabama groundwater data 
+- Alabama secondary data 
+
 
 ```{r}
 # Attempt to read in USGS Alabama data file 
@@ -32,5 +46,39 @@ alabama_gw_usgs <- read_tsv(here::here("raw_data", "alabama_raw_import.txt"))
 # Attempt to read in Secondary USGS data file 
 
 alabama_other_usgs <- read_tsv(here::here("raw_data", "alabama_raw_other_import.txt"))
+```
+
+Merge datasets 
+
+```{r}
+# Attempt to merge alabama_gw_usgs and alabama_other_usgs data frames 
+
+alabama_merge <- alabama_gw_usgs %>% 
+  inner_join(alabama_other_usgs) 
+
+# Check to see if there are any values that didn't match (using antijoin)
+# No data displayed, therefore everything matched, antijoin will be commented out
+
+# alabama_antijoin <- alabama_gw_usgs %>% 
+#   anti_join(alabama_other_usgs)
+
+```
+
+Tidy data **still having issues with lubridate dropping only year values to NA, need to resolve**
+
+```{r}
+# Tidy data to a final version 
+# Remove excess columns 
+# Convert date column from character to date ISO format 
+# Separate month and year into their own columns 
+
+alabama_usgs <- alabama_merge %>% 
+  select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %>% 
+    mutate(
+    level_date = lubridate::ymd(lev_dt),
+    level_month = lubridate::month(level_date, label = TRUE), 
+    level_year = lubridate::year(level_date))
+      
+# as.Date(alabama_usgs$lev_dt, format = "%Y-%m-%d") # Attempt to convert character to date using as.Date()
 ```
 
