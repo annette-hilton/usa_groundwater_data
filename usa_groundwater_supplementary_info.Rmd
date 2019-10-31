@@ -1,0 +1,51 @@
+---
+title: "USA Well Water Data"
+author: "Annette Hilton"
+date: "10/31/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE}
+
+# Attach packages 
+
+library(tidyverse)
+```
+
+
+## Goals and Objectives for the project 
+
+Here we attempt to compile existing groundwater data in the United States of America across all 50 states. 
+We will begin by obtaining and compiling all available USGS groundwater data. We will then map well locations to identify where data exists and where data is scarce. 
+We will prioritize states and locations with little data to investigate if other groundwater data exists and if so, how to obtain it. 
+We will process and clean all of the data to ensure that it is in a consistent and computationally friendly format. 
+After we have obtained as much groundwater data as reasonably possible and converted it into a consistent format, we hope to have a large dataset in which we can begin to explore trends in groundwater. 
+
+## Specific parameters 
+
+We are seeking the following parameters: 
+
+- Location of well (latitude, longitude)
+- Date of measurement 
+- Well name/identifier 
+- Well water depth 
+- Well screen depth 
+- Elevation of well 
+
+## Constraints of data 
+
+We are specifically seeking both historical and continuous groundwater data to provide us with information about how the water level changed over time. 
+
+For each data type we plan to constrain our compilation by the following factors: 
+
+**Historical data**
+
+- Data from historical wells with only one measurement (well depth when drilled) will be excluded 
+
+**Continuous data** 
+
+- Any continuous data measurements that have more than one measurement per day will be averaged to obtain the mean well water depth for the entire day 
