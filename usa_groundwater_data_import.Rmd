@@ -1,0 +1,26 @@
+---
+title: "Groundwater Data Files"
+author: "Annette Hilton"
+date: "10/31/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Attach packages
+
+library(tidyverse)
+library(here)
+
+```
+
+
+```{r}
+# Attempt to read in USGS Alabama data file 
+
+alabama_gw_usgs <- read_tsv(here::here("raw_data", "alabama_raw_import.txt"))
+```
+
