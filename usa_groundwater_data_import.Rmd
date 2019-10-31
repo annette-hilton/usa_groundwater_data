@@ -15,6 +15,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
 
+# Disable scientific notation 
+
+options(scipen=999)
+
 ```
 
 
@@ -22,5 +26,11 @@ library(here)
 # Attempt to read in USGS Alabama data file 
 
 alabama_gw_usgs <- read_tsv(here::here("raw_data", "alabama_raw_import.txt"))
+```
+
+```{r}
+# Attempt to read in Secondary USGS data file 
+
+alabama_other_usgs <- read_tsv(here::here("raw_data", "alabama_raw_other_import.txt"))
 ```
 
