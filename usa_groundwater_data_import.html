@@ -399,30 +399,33 @@ alabama_gw_usgs &lt;- read_tsv(here::here(&quot;raw_data&quot;, &quot;alabama_ra
 
 alabama_other_usgs &lt;- read_tsv(here::here(&quot;raw_data&quot;, &quot;alabama_raw_other_import.txt&quot;))</code></pre>
 <p>Merge datasets</p>
-<pre class="r"><code># Attempt to merge alabama_gw_usgs and alabama_other_usgs data frames 
+<pre class="r"><code># Merge alabama_gw_usgs and alabama_other_usgs data frames using full_join()
 
 alabama_merge &lt;- alabama_gw_usgs %&gt;% 
-  inner_join(alabama_other_usgs) 
-
-# Check to see if there are any values that didn&#39;t match (using antijoin)
-# No data displayed, therefore everything matched, antijoin will be commented out
-
-# alabama_antijoin &lt;- alabama_gw_usgs %&gt;% 
-#   anti_join(alabama_other_usgs)</code></pre>
-<p>Tidy data <strong>still having issues with lubridate dropping only year values to NA, need to resolve</strong></p>
+  full_join(alabama_other_usgs) </code></pre>
+<p>Tidy data</p>
 <pre class="r"><code># Tidy data to a final version 
 # Remove excess columns 
-# Convert date column from character to date ISO format 
+ 
+alabama_usgs &lt;- alabama_merge %&gt;% 
+  select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va)</code></pre>
+<p>Convert dates</p>
+<pre class="r"><code># Create new dataframe to keep these conversions separate 
+# Convert date column from character to date ISO format (and so R recognizes as date class)
+# Create decimal date from ISO format 
+# Make a rule so R keeps NA values and adds 0.5 (half the year, June 15th) to the dates that only have a value for year (missing date and month)
 # Separate month and year into their own columns 
 
-alabama_usgs &lt;- alabama_merge %&gt;% 
-  select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %&gt;% 
+alabama_usgs_date &lt;- alabama_usgs %&gt;% 
     mutate(
     level_date = lubridate::ymd(lev_dt),
-    level_month = lubridate::month(level_date, label = TRUE), 
-    level_year = lubridate::year(level_date))
-      
-# as.Date(alabama_usgs$lev_dt, format = &quot;%Y-%m-%d&quot;)</code></pre>
+    level_decimal_date = lubridate::decimal_date(level_date), 
+    level_dec_dt_full = case_when(
+      !is.na(level_decimal_date) ~ level_decimal_date, 
+      is.na(level_decimal_date) ~ as.numeric(lev_dt) + 0.45),
+    level_date_new = lubridate::date_decimal(level_dec_dt_full),
+    level_month = lubridate::month(level_date_new, label = TRUE),
+    level_year = lubridate::year(level_date_new))</code></pre>
 </div>
 </div>
 

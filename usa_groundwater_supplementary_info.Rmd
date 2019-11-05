@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # Attach packages 
 
 library(tidyverse)
+library(kableExtra)
+
 ```
 
 
@@ -29,12 +31,19 @@ After we have obtained as much groundwater data as reasonably possible and conve
 
 We are seeking the following parameters: 
 
-- Location of well (latitude, longitude)
-- Date of measurement 
-- Well name/identifier 
-- Well water depth 
-- Well screen depth 
-- Elevation of well 
+**General Well Information** 
+
+- Location of well (latitude, longitude in decimal degrees)
+- Well identifier 
+- Well depth 
+- Hole depth 
+- Altitude/Elevation of well 
+
+**Information Specific to Measurements** 
+
+- Date of measurement (decimal year)
+- Well water depth at date of measurement 
+
 
 ## Constraints of data 
 
@@ -63,3 +72,8 @@ USGS data has been obtained through two different download portals:
   - https://waterdata.usgs.gov/al/nwis/inventory
   
 Citation: **please add citation here**
+
+```{r}
+
+```
+
