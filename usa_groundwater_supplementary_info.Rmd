@@ -27,7 +27,7 @@ We will prioritize states and locations with little data to investigate if other
 We will process and clean all of the data to ensure that it is in a consistent and computationally friendly format. 
 After we have obtained as much groundwater data as reasonably possible and converted it into a consistent format, we hope to have a large dataset in which we can begin to explore trends in groundwater. 
 
-## Specific parameters 
+### Specific parameters 
 
 We are seeking the following parameters: 
 
@@ -45,7 +45,7 @@ We are seeking the following parameters:
 - Well water depth at date of measurement 
 
 
-## Constraints of data 
+### Constraints of data 
 
 We are specifically seeking both historical and continuous groundwater data to provide us with information about how the water level changed over time. 
 
@@ -59,7 +59,7 @@ For each data type we plan to constrain our compilation by the following factors
 
 - Any continuous data measurements that have more than one measurement per day will be averaged to obtain the mean well water depth for the entire day 
 
-## Data sources 
+### Data sources 
 
 #### USGS
 
@@ -73,7 +73,47 @@ USGS data has been obtained through two different download portals:
   
 Citation: **please add citation here**
 
-```{r}
+#### How to download data 
 
-```
+#### **USGS Groundwater Levels REST Web Service URL Generation Tool** 
+
+Required Arguments Section 
+
+- Major Filters: "State of Territory" 
+- State or Territory: Select state of interest 
+
+Optional Arguments Section 
+
+- Output Format: "USGS RDB (tab-delimited)" 
+- Date Range: "Return all values within an absolute date range (start and end dates)" 
+- Start Date: "1800-01-01" 
+- Groundwater Site Types: "Well" 
+
+Generated URL Section 
+
+- Click "Generate the URL" 
+- Click "Run the Generated URL" 
+
+#### **National Water Information System: Web Interface** 
+
+- Select Geographic Area: Select state of interest
+- Site Attribute: "Site type" 
+- Click "Submit" 
+
+(Next page)
+
+- Site type: "Well" 
+- Choose Output format: "Site-description information displayed in tab separated format 
+- Select Fields to include in site-description output: 
+  - Agency
+  - Site identification number
+  - Site name 
+  - Decimal latitude 
+  - Decimal longitude 
+  - Altitude of Gage/land surface
+  - Well depth 
+  - Hole depth 
+- Click "Submit" 
+
+
 

@@ -373,9 +373,8 @@ summary {
 <div id="goals-and-objectives-for-the-project" class="section level2">
 <h2>Goals and Objectives for the project</h2>
 <p>Here we attempt to compile existing groundwater data in the United States of America across all 50 states. We will begin by obtaining and compiling all available USGS groundwater data. We will then map well locations to identify where data exists and where data is scarce. We will prioritize states and locations with little data to investigate if other groundwater data exists and if so, how to obtain it. We will process and clean all of the data to ensure that it is in a consistent and computationally friendly format. After we have obtained as much groundwater data as reasonably possible and converted it into a consistent format, we hope to have a large dataset in which we can begin to explore trends in groundwater.</p>
-</div>
-<div id="specific-parameters" class="section level2">
-<h2>Specific parameters</h2>
+<div id="specific-parameters" class="section level3">
+<h3>Specific parameters</h3>
 <p>We are seeking the following parameters:</p>
 <p><strong>General Well Information</strong></p>
 <ul>
@@ -391,8 +390,8 @@ summary {
 <li>Well water depth at date of measurement</li>
 </ul>
 </div>
-<div id="constraints-of-data" class="section level2">
-<h2>Constraints of data</h2>
+<div id="constraints-of-data" class="section level3">
+<h3>Constraints of data</h3>
 <p>We are specifically seeking both historical and continuous groundwater data to provide us with information about how the water level changed over time.</p>
 <p>For each data type we plan to constrain our compilation by the following factors:</p>
 <p><strong>Historical data</strong></p>
@@ -404,8 +403,8 @@ summary {
 <li>Any continuous data measurements that have more than one measurement per day will be averaged to obtain the mean well water depth for the entire day</li>
 </ul>
 </div>
-<div id="data-sources" class="section level2">
-<h2>Data sources</h2>
+<div id="data-sources" class="section level3">
+<h3>Data sources</h3>
 <div id="usgs" class="section level4">
 <h4>USGS</h4>
 <p>USGS data has been obtained through two different download portals:</p>
@@ -420,6 +419,55 @@ summary {
 </ul></li>
 </ul>
 <p>Citation: <strong>please add citation here</strong></p>
+</div>
+<div id="how-to-download-data" class="section level4">
+<h4>How to download data</h4>
+</div>
+<div id="usgs-groundwater-levels-rest-web-service-url-generation-tool" class="section level4">
+<h4><strong>USGS Groundwater Levels REST Web Service URL Generation Tool</strong></h4>
+<p>Required Arguments Section</p>
+<ul>
+<li>Major Filters: “State of Territory”</li>
+<li>State or Territory: Select state of interest</li>
+</ul>
+<p>Optional Arguments Section</p>
+<ul>
+<li>Output Format: “USGS RDB (tab-delimited)”</li>
+<li>Date Range: “Return all values within an absolute date range (start and end dates)”</li>
+<li>Start Date: “1800-01-01”</li>
+<li>Groundwater Site Types: “Well”</li>
+</ul>
+<p>Generated URL Section</p>
+<ul>
+<li>Click “Generate the URL”</li>
+<li>Click “Run the Generated URL”</li>
+</ul>
+</div>
+<div id="national-water-information-system-web-interface" class="section level4">
+<h4><strong>National Water Information System: Web Interface</strong></h4>
+<ul>
+<li>Select Geographic Area: Select state of interest</li>
+<li>Site Attribute: “Site type”</li>
+<li>Click “Submit”</li>
+</ul>
+<p>(Next page)</p>
+<ul>
+<li>Site type: “Well”</li>
+<li>Choose Output format: &quot;Site-description information displayed in tab separated format</li>
+<li>Select Fields to include in site-description output:
+<ul>
+<li>Agency</li>
+<li>Site identification number</li>
+<li>Site name</li>
+<li>Decimal latitude</li>
+<li>Decimal longitude</li>
+<li>Altitude of Gage/land surface</li>
+<li>Well depth</li>
+<li>Hole depth</li>
+</ul></li>
+<li>Click “Submit”</li>
+</ul>
+</div>
 </div>
 </div>
 
