@@ -1,0 +1,63 @@
+---
+title: "For Loop Attempt USGS Data"
+author: "Annette Hilton"
+date: "11/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Attach packages
+
+library(tidyverse)
+library(here)
+```
+
+
+```{r}
+files <- list.files(path = (here::here("raw_data")))
+
+state <- c("alabama", "alaska", "arizona")
+```
+
+
+
+```{r}
+
+for (i in 1:length(state)) {
+  name = state[i]
+  
+  state_files = list.files(path = (here::here("raw_data")), 
+                                   pattern = name)
+  raw_import <- state_files[1]
+  import <- state_files[2]
+  
+  raw_import_usgs <- read_tsv(here::here("raw_data", raw_import))
+  import_usgs <- read_tsv(here::here("raw_data", import))
+  
+  state_files_merge <- raw_import_usgs %>%
+    full_join(import_usgs)
+  
+  state_files_usgs <- state_files_merge %>% 
+    select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %>% 
+     mutate(
+    level_date = lubridate::ymd(lev_dt),
+    level_decimal_date = lubridate::decimal_date(level_date), 
+    level_dec_dt_full = case_when(
+      !is.na(level_decimal_date) ~ level_decimal_date, 
+      is.na(level_decimal_date) ~ as.numeric(lev_dt) + 0.45),
+    level_date_new = lubridate::date_decimal(level_dec_dt_full),
+    level_month = lubridate::month(level_date_new, label = TRUE),
+    level_year = lubridate::year(level_date_new))
+  
+}
+
+# file_name <- paste(name, ".txt", sep ="")
+# 
+# write_txt(final_df, file_name) #find a way to write_txt this is all commented out until you're ready to use it 
+```
+
+
