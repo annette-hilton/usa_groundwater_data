@@ -426,6 +426,25 @@ alabama_usgs_date &lt;- alabama_usgs %&gt;%
     level_date_new = lubridate::date_decimal(level_dec_dt_full),
     level_month = lubridate::month(level_date_new, label = TRUE),
     level_year = lubridate::year(level_date_new))</code></pre>
+<pre class="r"><code># files &lt;- list.files(path = (here::here(&quot;raw_data&quot;)))
+# 
+# state &lt;- c(&quot;alabama&quot;, &quot;alaska&quot;, &quot;arizona&quot;)</code></pre>
+<pre class="r"><code>#loop 
+
+# for (i in 1:length(state)) {
+#   name = state[i]
+#   
+#   state_files = list.files(path = (here::here(&quot;raw_data&quot;)), 
+#                                    pattern = name)
+#   raw_import &lt;- state_files[1]
+#   import &lt;- state_files[2]
+# 
+#   
+# }
+
+# file_name &lt;- paste(name, &quot;.txt&quot;, sep =&quot;&quot;)
+# 
+# write_txt(final_df, file_name) #find a way to write_txt this is all commented out until you&#39;re ready to use it </code></pre>
 </div>
 </div>
 

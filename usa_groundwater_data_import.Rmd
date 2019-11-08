@@ -94,24 +94,24 @@ alabama_usgs_date <- alabama_usgs %>%
 ```
 
 ```{r}
-files <- list.files(path = (here::here("raw_data")))
-
-state <- c("alabama", "alaska", "arizona")
+# files <- list.files(path = (here::here("raw_data")))
+# 
+# state <- c("alabama", "alaska", "arizona")
 ```
 
 ```{r}
 #loop 
 
-for (i in 1:length(state)) {
-  name = state[i]
-  
-  state_files = list.files(path = (here::here("raw_data")), 
-                                   pattern = name)
-  raw_import <- state_files[1]
-  import <- state_files[2]
-
-  
-}
+# for (i in 1:length(state)) {
+#   name = state[i]
+#   
+#   state_files = list.files(path = (here::here("raw_data")), 
+#                                    pattern = name)
+#   raw_import <- state_files[1]
+#   import <- state_files[2]
+# 
+#   
+# }
 
 # file_name <- paste(name, ".txt", sep ="")
 # 

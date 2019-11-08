@@ -75,7 +75,7 @@ Citation: **please add citation here**
 
 #### How to download data 
 
-#### **USGS Groundwater Levels REST Web Service URL Generation Tool** 
+##### **USGS Groundwater Levels REST Web Service URL Generation Tool** 
 
 Required Arguments Section 
 
@@ -94,7 +94,7 @@ Generated URL Section
 - Click "Generate the URL" 
 - Click "Run the Generated URL" 
 
-#### **National Water Information System: Web Interface** 
+##### **National Water Information System: Web Interface** 
 
 - Select Geographic Area: Select state of interest
 - Site Attribute: "Site type" 
