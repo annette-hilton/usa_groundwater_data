@@ -53,8 +53,10 @@ Merge datasets
 ```{r}
 # Merge alabama_gw_usgs and alabama_other_usgs data frames using full_join()
 
-alabama_merge <- alabama_gw_usgs %>% 
-  full_join(alabama_other_usgs) 
+alabama_merge <- full_join(alabama_gw_usgs, alabama_other_usgs, by = "site_no", copy = FALSE)
+
+# alabama_merge <- alabama_gw_usgs %>% 
+#   full_join(alabama_other_usgs) 
 
 
 ```

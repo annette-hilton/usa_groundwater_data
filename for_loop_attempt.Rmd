@@ -9,6 +9,14 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Errors and areas to fix/improve 
+
+- Dates and decimal dates, how to deal with impartial dates? Must return to this question. Consider: 
+  - Making new column that contains the length of the string 
+  - Look at dates or parse dates from "left of" or "mid of" 
+- NA values introduced by coercion/ failure to parse...need to understand if these values are important/should be concerned or not 
+- Figure out way to merge state data and keep separate (only state data, not giant dataframe with all 50 states) 
+
 ```{r}
 # Attach packages
 
@@ -20,10 +28,14 @@ library(here)
 ```{r}
 files <- list.files(path = (here::here("raw_data")))
 
-state <- c("alabama", "alaska", "arizona")
+state <- c("alabama", "alaska", "arizona", "arkansas", "california", "colorado", "connecticut", "delaware", "districtcolumbia", "florida", "georgia", "hawaii", "idaho", "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana", "maine", "maryland", "massachusetts", "michigan", "minnesota", "mississippi", "missouri", "montana", "nebraska", "nevada", "newhampshire", "newjersey", "newmexico", "newyork", "northcarolina", "northdakota", "oaklahoma", "ohio", "oregon", "pennsylvania", "puertorico", "rhodeisland", "southcarolina", "southdakota", "tennessee", "texas", "utah", "vermont", "virginia", "virginislands", "washington", "westvirginia", "wisconsin", "wyoming")
 ```
 
+ERROR TO ADDRESS: 
 
+For code chunk below: 
+
+In order to merge the two different types of files, I had to specify the type of column for "site_no", as some were being recognized as characters and some doubles. I specified doubles using col_types, however, that seems to have made the dataframe lose all of its data in the "import_usgs" dataframe (only the agency_id is kept). Very curious. Attempted to play around with this but unsure. I think it might be likely that I have to specify all of the column types and not just one? Perhaps that is what eliminated the others? Must follow up...
 
 ```{r}
 
@@ -35,23 +47,26 @@ for (i in 1:length(state)) {
   raw_import <- state_files[1]
   import <- state_files[2]
   
-  raw_import_usgs <- read_tsv(here::here("raw_data", raw_import))
-  import_usgs <- read_tsv(here::here("raw_data", import))
-  
-  state_files_merge <- raw_import_usgs %>%
-    full_join(import_usgs)
-  
-  state_files_usgs <- state_files_merge %>% 
-    select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %>% 
-     mutate(
-    level_date = lubridate::ymd(lev_dt),
-    level_decimal_date = lubridate::decimal_date(level_date), 
-    level_dec_dt_full = case_when(
-      !is.na(level_decimal_date) ~ level_decimal_date, 
-      is.na(level_decimal_date) ~ as.numeric(lev_dt) + 0.45),
-    level_date_new = lubridate::date_decimal(level_dec_dt_full),
-    level_month = lubridate::month(level_date_new, label = TRUE),
-    level_year = lubridate::year(level_date_new))
+  raw_import_usgs <- read_tsv(here::here("raw_data", raw_import),
+                              col_types = cols(site_no = col_double()
+                                   ))
+  import_usgs <- read_tsv(here::here("raw_data", import),
+                          col_types = cols(site_no = col_double()
+                          ))
+
+  state_files_merge <- full_join(x = import_usgs, y = raw_import_usgs, by = "site_no", copy = FALSE)
+  # 
+  # state_files_usgs <- state_files_merge %>%
+  #   select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %>%
+  #    mutate(
+  #   level_date = lubridate::ymd(lev_dt),
+  #   level_decimal_date = lubridate::decimal_date(level_date),
+  #   level_dec_dt_full = case_when(
+  #     !is.na(level_decimal_date) ~ level_decimal_date,
+  #     is.na(level_decimal_date) ~ as.numeric(lev_dt) + 0.5),
+  #   level_date_new = lubridate::date_decimal(level_dec_dt_full),
+  #   level_month = lubridate::month(level_date_new, label = TRUE),
+  #   level_year = lubridate::year(level_date_new))
   
 }
 

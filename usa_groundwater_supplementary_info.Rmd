@@ -115,5 +115,28 @@ Generated URL Section
   - Hole depth 
 - Click "Submit" 
 
+#### Data Management Process 
 
+1. Data download 
+2. Data preparation to be imported into RStudio 
+3. Data import and wrangling in RStudio 
+
+Part 1. Data download 
+
+1. Two data sets for each state were obtained using the data sources listed above with the above criteria 
+2. Raw text files from each data source are saved directly from the web browser (avoiding copy/paste potential errors). The two files are saved as:
+  - "State_Raw_Date", where the State is the state name and the date is the date the data was obtained (ex. "California_Raw_11_08_19") 
+  - "State_Raw_Other_Date" 
+  
+** Note, do not use google chrome web browser to download USGS data, it is not a compatible browser
+
+Part 2. Data preparation to be imported into RStudio 
+
+1. The two raw text files for each state are copied
+2. The copied files are renamed: 
+  - "state_raw_import"
+  - "state_raw_other_import" 
+3. The files are opened and the metadata information prior to the collection data is manually removed for ease of import into RStudio 
+
+Part 3. Data import and wrangling in RStudio 
 

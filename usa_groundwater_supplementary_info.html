@@ -468,6 +468,37 @@ summary {
 </ul>
 </div>
 </div>
+<div id="data-management-process" class="section level4">
+<h4>Data Management Process</h4>
+<ol style="list-style-type: decimal">
+<li>Data download</li>
+<li>Data preparation to be imported into RStudio</li>
+<li>Data import and wrangling in RStudio</li>
+</ol>
+<p>Part 1. Data download</p>
+<ol style="list-style-type: decimal">
+<li>Two data sets for each state were obtained using the data sources listed above with the above criteria</li>
+<li>Raw text files from each data source are saved directly from the web browser (avoiding copy/paste potential errors). The two files are saved as:</li>
+</ol>
+<ul>
+<li>“State_Raw_Date”, where the State is the state name and the date is the date the data was obtained (ex. “California_Raw_11_08_19”)</li>
+<li>“State_Raw_Other_Date”</li>
+</ul>
+<p>** Note, do not use google chrome web browser to download USGS data, it is not a compatible browser</p>
+<p>Part 2. Data preparation to be imported into RStudio</p>
+<ol style="list-style-type: decimal">
+<li>The two raw text files for each state are copied</li>
+<li>The copied files are renamed:</li>
+</ol>
+<ul>
+<li>“state_raw_import”</li>
+<li>“state_raw_other_import”</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>The files are opened and the metadata information prior to the collection data is manually removed for ease of import into RStudio</li>
+</ol>
+<p>Part 3. Data import and wrangling in RStudio</p>
+</div>
 </div>
 </div>
 
