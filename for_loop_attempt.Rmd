@@ -38,7 +38,9 @@ state <- c("alabama", "alaska", "arizona", "arkansas", "california", "colorado",
 
 IMPORTANT: 
 
-There are not as many observations (rows) as there should be. I suspect R is not actually compiling all 50 states. I suspect it is doing the last two (in the looping process). What have I done wrong here? 
+Need to work out the return at the end of the loop to return the separate dataframes for each state (otherwise a loop will default to return the last value), but I need to figure out it to write it as a dataframe. 
+
+I need to figure out a way to call the names of each state to autopopulate 
 
 ALSO: 
 
@@ -94,7 +96,10 @@ for (i in 1:length(state)) {
   state_files_merge <- full_join(x = import_usgs, y = raw_import_usgs, by = "site_no", copy = FALSE)
   
   state_files_usgs <- state_files_merge %>% 
-    select(-station_nm, -coord_acy_cd, -agency_cd.y, -site_tp_cd, -lev_tm, -sl_lev_va : -lev_age_cd) %>% 
+    select(-station_nm, -coord_acy_cd, -agency_cd.y, -site_tp_cd, -lev_tm, -sl_lev_va : -lev_age_cd)
+  
+  file_name <- paste(name, sep = "")
+  return(state_files_usgs) 
     
     # Below: parse_date_time works on small example (alabama in usa_groundwater_data_import). I think it is not working here because something to do with the loop of the 50 states. "Error: Column `level_date` must be length 23296 (the number of rows) or one, not 72697) 
     
