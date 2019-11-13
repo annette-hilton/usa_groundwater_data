@@ -69,7 +69,9 @@ Tidy data
 # Remove excess columns 
  
 alabama_usgs <- alabama_merge %>% 
-  select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va)
+  select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %>% 
+  mutate(
+      level_date = lubridate::parse_date_time(alabama_merge$lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE)) # this works but defaults incomplete dates to january 1st (or the 1st of the month). May not be a problem if I can figure out which ones are truly january...or modify this default? 
   
 ```
 
@@ -95,29 +97,8 @@ alabama_usgs_date <- alabama_usgs %>%
    
 ```
 
-```{r}
-# files <- list.files(path = (here::here("raw_data")))
-# 
-# state <- c("alabama", "alaska", "arizona")
-```
 
-```{r}
-#loop 
 
-# for (i in 1:length(state)) {
-#   name = state[i]
-#   
-#   state_files = list.files(path = (here::here("raw_data")), 
-#                                    pattern = name)
-#   raw_import <- state_files[1]
-#   import <- state_files[2]
-# 
-#   
-# }
 
-# file_name <- paste(name, ".txt", sep ="")
-# 
-# write_txt(final_df, file_name) #find a way to write_txt this is all commented out until you're ready to use it 
 
-```
 

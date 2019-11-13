@@ -14,7 +14,6 @@ knitr::opts_chunk$set(echo = TRUE)
 - Dates and decimal dates, how to deal with impartial dates? Must return to this question. Consider: 
   - Making new column that contains the length of the string 
   - Look at dates or parse dates from "left of" or "mid of" 
-- NA values introduced by coercion/ failure to parse...need to understand if these values are important/should be concerned or not 
 - Figure out way to merge state data and keep separate (only state data, not giant dataframe with all 50 states) 
 
 ```{r}
@@ -22,6 +21,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(here)
+library(lubridate)
+
+# Disable scientific notation 
+
+options(scipen=999)
+
 ```
 
 
@@ -31,11 +36,13 @@ files <- list.files(path = (here::here("raw_data")))
 state <- c("alabama", "alaska", "arizona", "arkansas", "california", "colorado", "connecticut", "delaware", "districtcolumbia", "florida", "georgia", "hawaii", "idaho", "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana", "maine", "maryland", "massachusetts", "michigan", "minnesota", "mississippi", "missouri", "montana", "nebraska", "nevada", "newhampshire", "newjersey", "newmexico", "newyork", "northcarolina", "northdakota", "oaklahoma", "ohio", "oregon", "pennsylvania", "puertorico", "rhodeisland", "southcarolina", "southdakota", "tennessee", "texas", "utah", "vermont", "virginia", "virginislands", "washington", "westvirginia", "wisconsin", "wyoming")
 ```
 
-ERROR TO ADDRESS: 
+IMPORTANT: 
 
-For code chunk below: 
+There are not as many observations (rows) as there should be. I suspect R is not actually compiling all 50 states. I suspect it is doing the last two (in the looping process). What have I done wrong here? 
 
-In order to merge the two different types of files, I had to specify the type of column for "site_no", as some were being recognized as characters and some doubles. I specified doubles using col_types, however, that seems to have made the dataframe lose all of its data in the "import_usgs" dataframe (only the agency_id is kept). Very curious. Attempted to play around with this but unsure. I think it might be likely that I have to specify all of the column types and not just one? Perhaps that is what eliminated the others? Must follow up...
+ALSO: 
+
+Date work--got the parse_date_time to work on alabama only. Here I suspect it is not working due to the loops. But it also defaults to Jan. 1st for incomplete values. I want to change that default. 
 
 ```{r}
 
@@ -48,13 +55,73 @@ for (i in 1:length(state)) {
   import <- state_files[2]
   
   raw_import_usgs <- read_tsv(here::here("raw_data", raw_import),
-                              col_types = cols(site_no = col_double()
+                              col_types = cols(
+                                agency_cd = col_character(),
+                                site_no = col_double(),
+                                site_tp_cd = col_character(),
+                                lev_dt = col_character(),
+                                lev_tm = col_character(),
+                                lev_tz_cd = col_character(), 
+                                lev_va = col_double(), 
+                                sl_lev_va = col_character(), 
+                                sl_datum_cd = col_character(), 
+                                lev_status_cd = col_character(),
+                                lev_agency_cd = col_character(),
+                                lev_dt_acy_cd = col_character(),
+                                lev_acy_cd = col_character(), 
+                                lev_src_cd = col_character(),
+                                lev_meth_cd = col_character()
+                                  
                                    ))
+  parse_date_time(raw_import_usgs$lev_dt, orders = c("ymd", "Y!", "Ym"))
+  
   import_usgs <- read_tsv(here::here("raw_data", import),
-                          col_types = cols(site_no = col_double()
+                          col_types = cols(
+                            agency_cd = col_character(),
+                            site_no = col_double(),
+                            station_nm = col_character(),
+                            dec_lat_va = col_double(),
+                            dec_long_va = col_double(),
+                            coord_acy_cd = col_character(), 
+                            dec_coord_datum_cd = col_character(),
+                            alt_va = col_double(),
+                            alt_acy_va = col_double(),
+                            alt_datum_cd = col_character(),
+                            well_depth_va = col_double(),
+                            hole_depth_va = col_double()
                           ))
 
   state_files_merge <- full_join(x = import_usgs, y = raw_import_usgs, by = "site_no", copy = FALSE)
+  
+  state_files_usgs <- state_files_merge %>% 
+    select(-station_nm, -coord_acy_cd, -agency_cd.y, -site_tp_cd, -lev_tm, -sl_lev_va : -lev_age_cd) %>% 
+    
+    # Below: parse_date_time works on small example (alabama in usa_groundwater_data_import). I think it is not working here because something to do with the loop of the 50 states. "Error: Column `level_date` must be length 23296 (the number of rows) or one, not 72697) 
+    
+    
+    # mutate(
+    #   level_date = lubridate::parse_date_time(state_files_usgs$lev_dt, orders = c("ymd", "Y!", "Ym")))
+  
+   # level_date = lubridate::ymd(lev_dt),
+   # level_decimal_date = lubridate::decimal_date(level_date),
+   # level_dec_dt_full = case_when(
+   #   !is.na(level_decimal_date) ~ level_decimal_date,
+   #   is.na(level_decimal_date) ~ as.numeric(lev_dt) + 0.5),
+   # level_date_new = lubridate::date_decimal(level_dec_dt_full),
+   # level_month = lubridate::month(level_date_new, label = TRUE),
+   # level_year = lubridate::year(level_date_new))
+   # 
+}
+
+# This is in-progress for figuring out how to write the resulting files to a text doc (below)
+
+# file_name <- paste(name, ".txt", sep ="")
+# 
+# write_tsv(here::here("merged_state_data", file_name) 
+
+```
+
+```{r}
   # 
   # state_files_usgs <- state_files_merge %>%
   #   select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %>%
@@ -67,12 +134,5 @@ for (i in 1:length(state)) {
   #   level_date_new = lubridate::date_decimal(level_dec_dt_full),
   #   level_month = lubridate::month(level_date_new, label = TRUE),
   #   level_year = lubridate::year(level_date_new))
-  
-}
-
-# file_name <- paste(name, ".txt", sep ="")
-# 
-# write_txt(final_df, file_name) #find a way to write_txt this is all commented out until you're ready to use it 
 ```
-
 
