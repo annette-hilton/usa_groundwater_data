@@ -9,6 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Goals and Steps 
+
+1. Figure out how to write forloop and have the results (dataframes) for each state 
+2. Figure out how to write these files to a csv or text file (or both) in the loop? 
+3. Write a separate function to deal with all of the date stuff 
+4. Write a separate function to merge all 53 state/territory files 
+
 ## Errors and areas to fix/improve 
 
 - Dates and decimal dates, how to deal with impartial dates? Must return to this question. Consider: 
@@ -28,7 +35,19 @@ library(lubridate)
 options(scipen=999)
 
 ```
+### For-loop on USA territory files 
 
+Here I wrote a for-loop to perform the following: 
+
+1. Read in raw text data files (two raw data files for each state) 
+  a. Specifically assign columns as they are read in with the correct format (character, numeric, etc.)
+  b. Attempt to assign dates 
+2. Merge the two files for each state 
+  a. Merge by site number
+  b. Full merge so nothing is ommitted, even if there is not a match between the two data files 
+  c. Remove columns that are not of interest, tidy the dataframe 
+3. Pull the state name for each dataframe produced and return each state individually
+  
 
 ```{r}
 files <- list.files(path = (here::here("raw_data")))
@@ -36,17 +55,17 @@ files <- list.files(path = (here::here("raw_data")))
 state <- c("alabama", "alaska", "arizona", "arkansas", "california", "colorado", "connecticut", "delaware", "districtcolumbia", "florida", "georgia", "hawaii", "idaho", "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana", "maine", "maryland", "massachusetts", "michigan", "minnesota", "mississippi", "missouri", "montana", "nebraska", "nevada", "newhampshire", "newjersey", "newmexico", "newyork", "northcarolina", "northdakota", "oaklahoma", "ohio", "oregon", "pennsylvania", "puertorico", "rhodeisland", "southcarolina", "southdakota", "tennessee", "texas", "utah", "vermont", "virginia", "virginislands", "washington", "westvirginia", "wisconsin", "wyoming")
 ```
 
-IMPORTANT: 
 
-Need to work out the return at the end of the loop to return the separate dataframes for each state (otherwise a loop will default to return the last value), but I need to figure out it to write it as a dataframe. 
-
-I need to figure out a way to call the names of each state to autopopulate 
-
-ALSO: 
-
-Date work--got the parse_date_time to work on alabama only. Here I suspect it is not working due to the loops. But it also defaults to Jan. 1st for incomplete values. I want to change that default. 
 
 ```{r}
+#---------------------------------------------------------------------------------
+# This is the for loop with the objectives described above
+#---------------------------------------------------------------------------------
+
+
+results <- data.frame(files = "state")
+
+df.names <- paste(state, sep="")
 
 for (i in 1:length(state)) {
   name = state[i]
@@ -74,7 +93,8 @@ for (i in 1:length(state)) {
                                 lev_src_cd = col_character(),
                                 lev_meth_cd = col_character()
                                   
-                                   ))
+                                   )) 
+ 
   parse_date_time(raw_import_usgs$lev_dt, orders = c("ymd", "Y!", "Ym"))
   
   import_usgs <- read_tsv(here::here("raw_data", import),
@@ -93,15 +113,34 @@ for (i in 1:length(state)) {
                             hole_depth_va = col_double()
                           ))
 
-  state_files_merge <- full_join(x = import_usgs, y = raw_import_usgs, by = "site_no", copy = FALSE)
+  state_files_merge <- full_join(x = import_usgs, y = raw_import_usgs, by = "site_no", copy = FALSE) 
   
   state_files_usgs <- state_files_merge %>% 
-    select(-station_nm, -coord_acy_cd, -agency_cd.y, -site_tp_cd, -lev_tm, -sl_lev_va : -lev_age_cd)
-  
-  file_name <- paste(name, sep = "")
-  return(state_files_usgs) 
+    select(-station_nm, -coord_acy_cd, -agency_cd.y, -site_tp_cd, -lev_tm, -sl_lev_va : -lev_age_cd) 
+
+  results <- state_files_usgs
+
+  assign(df.names[i], results)}
+
+# write.table(results, file = "output.csv", row.names = FALSE, append = TRUE, col.names = TRUE, sep = ",")
+
     
-    # Below: parse_date_time works on small example (alabama in usa_groundwater_data_import). I think it is not working here because something to do with the loop of the 50 states. "Error: Column `level_date` must be length 23296 (the number of rows) or one, not 72697) 
+    
+
+
+# This is in-progress for figuring out how to write the resulting files to a text doc (below)
+
+# file_name <- paste(name, ".txt", sep ="")
+# 
+# write_tsv(here::here("merged_state_data", file_name) 
+
+```
+
+Issues with the for loop working to mutate columns because of complications with the length/loop. Perhaps it would be better to do the date work as a separate function after the loop. (Write it as a function) Information/attempts below. 
+
+```{r}
+
+# Below: parse_date_time works on small example (alabama in usa_groundwater_data_import). I think it is not working here because something to do with the loop of the 50 states. "Error: Column `level_date` must be length 23296 (the number of rows) or one, not 72697) 
     
     
     # mutate(
@@ -116,14 +155,6 @@ for (i in 1:length(state)) {
    # level_month = lubridate::month(level_date_new, label = TRUE),
    # level_year = lubridate::year(level_date_new))
    # 
-}
-
-# This is in-progress for figuring out how to write the resulting files to a text doc (below)
-
-# file_name <- paste(name, ".txt", sep ="")
-# 
-# write_tsv(here::here("merged_state_data", file_name) 
-
 ```
 
 ```{r}
