@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 This document is complimentary to "USA Well Water Data." Please reference "USA Well Water Data" for more information regarding the goals and parameters of the project. 
 
-In this document, we import and work with the USGS groundwater data for all 50 states. 
+In this document, I experiment with importing and wrangling data for one state before applying it to all 53 states/territories.  
 
 ### Attach packages and other necessary commands 
 
@@ -54,7 +54,6 @@ Merge datasets
 # Merge alabama_gw_usgs and alabama_other_usgs data frames using full_join()
 
 alabama_merge <- full_join(alabama_gw_usgs, alabama_other_usgs, by = "site_no", copy = FALSE)
-
 
 ```
 

@@ -6,14 +6,18 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, error = FALSE, warning = FALSE)
 ```
+## Introduction
+
+This document is complimentary to "USA Well Water Data." Please reference "USA Well Water Data" for more information regarding the goals and parameters of the project.
+Here I attempt to import and wrangle data for all 53 states/territories. 
 
 ## Goals and Steps 
 
 1. Figure out how to write forloop and have the results (dataframes) for each state 
 2. Figure out how to write these files to a csv or text file (or both) in the loop? 
-3. Write a separate function to deal with all of the date stuff 
+3. Write a separate function to change dates to decimal dates, deal with incomplete dates, and parse out months/years 
 4. Write a separate function to merge all 53 state/territory files 
 
 ## Errors and areas to fix/improve 
@@ -21,6 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 - Dates and decimal dates, how to deal with impartial dates? Must return to this question. Consider: 
   - Making new column that contains the length of the string 
   - Look at dates or parse dates from "left of" or "mid of" 
+  -May be able to deal with incomplete dates a different way: designated date status in loop, incomplete dates are returned with 1st of month and/or 1st of year (Jan 1st), looking into how to change this default for our decimal date purposes (to mid-year) 
 - Figure out way to merge state data and keep separate (only state data, not giant dataframe with all 50 states) 
 
 ```{r}
@@ -35,6 +40,7 @@ library(lubridate)
 options(scipen=999)
 
 ```
+
 ### For-loop on USA territory files 
 
 Here I wrote a for-loop to perform the following: 
@@ -153,6 +159,10 @@ for (i in 1:length(state)) { # Identifying to pull state names
 
   assign(df.names[i], results)
   
+# Write the resulting dataframes of all 53 state/territories to csv files and tsv files, saved in separate folders 
+  
+  write_csv(results, here::here("merged_state_data_csv", file = paste0(df.names[i], ".csv")))
+  write_tsv(results, here::here("merged_state_data_tsv", file = paste0(df.names[i], ".txt")))
   }
 
 # IN PROGRESS: 
@@ -161,6 +171,9 @@ for (i in 1:length(state)) { # Identifying to pull state names
   # final_state_files <- file.path(here::here("merged_data_files"), paste0(results, "_", i, ".txt")) 
   # 
   # write.table(results, file = final_state_files, sep = "", row.names = FALSE, col.names = TRUE, quote = FALSE)    
+# save(results, list = df.names[i], file = "state.RData")
+
+
     
 
 ```
