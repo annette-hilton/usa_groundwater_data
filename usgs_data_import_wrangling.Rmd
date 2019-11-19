@@ -124,6 +124,7 @@ for (i in 1:length(state)) { # Identifying to pull state names
   
   parse_date_time(raw_import_usgs$lev_dt, orders = c("ymd", "Y!", "Ym")) 
   
+  
 # Read in second file type 
 # Specify column types 
   
