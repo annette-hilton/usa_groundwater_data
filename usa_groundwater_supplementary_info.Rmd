@@ -115,6 +115,22 @@ Generated URL Section
   - Hole depth 
 - Click "Submit" 
 
+
+**Minnesota exception**
+Please note that because Minnesota has so many well sites, they cannot be downloaded all at once. In order to obtain all wells (and not an incorrect subset of the wells) the following parameters were applied instead: 
+
+- Select Geographic Area: Select state of interest
+- Site Attribute: "Well depth" 
+- Click "Submit" 
+
+(Next page)
+
+- Well depth: 
+  - Greater than (blank) and less than (blank)
+  - For Minnesota (two queries to obtain all results possible): 
+  - Greater than (0) and less than (75 m)
+  - Greater than (74.5 m) and less than (blank) 
+
 #### Data Management Process 
 
 1. Data download 
@@ -129,6 +145,7 @@ Part 1. Data download
   - "State_Raw_Other_Date" 
   
 ** Note, do not use google chrome web browser to download USGS data, it is not a compatible browser
+
 
 Part 2. Data preparation to be imported into RStudio 
 
