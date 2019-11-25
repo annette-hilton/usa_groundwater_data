@@ -2,3 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
+*.RData
+lat_long_entire_usa_s_part_1.txt
+*.txt
+/*.txt
+/*.csv
+/*.ini
