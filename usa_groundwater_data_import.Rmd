@@ -21,6 +21,7 @@ In this document, I experiment with importing and wrangling data for one state b
 
 library(tidyverse)
 library(here)
+library(stringr)
 
 # Disable scientific notation 
 
@@ -37,11 +38,14 @@ Read in USGS data for Alabama
 
 
 ```{r}
-# Attempt to read in USGS Alabama data file 
+#------------------------------------------------------------------------------------------------
+# Read in first/main USGS state data files (for Alabama, Minnesota, Kansas, and Arkansas)
+#------------------------------------------------------------------------------------------------
+
 
 # alabama_gw_usgs <- read_tsv(here::here("raw_data", "alabama_raw_import.txt"))
 # 
-minnesota_gw_usgs <- read_tsv(here::here("test", "minnesota_raw_import.txt"))
+minnesota_gw_usgs <- read_tsv(here::here("raw_data", "minnesota_raw_import.txt"))
 
 # kansas_gw_usgs <- read_tsv(here::here("test", "kansas_raw_import.txt"))
 # 
@@ -50,7 +54,9 @@ minnesota_gw_usgs <- read_tsv(here::here("test", "minnesota_raw_import.txt"))
 ```
 
 ```{r}
-# Attempt to read in Secondary USGS data file 
+#-----------------------------------------------------------------------------------------------
+# Read in secondary USGS data file (for Alabama, Minnesota, Kansas, and Arkansas) and explore individual files
+#-----------------------------------------------------------------------------------------------
 
 # alabama_other_usgs <- read_tsv(here::here("raw_data", "alabama_raw_other_import.txt"))
 # 
@@ -60,28 +66,70 @@ minnesota_gw_usgs <- read_tsv(here::here("test", "minnesota_raw_import.txt"))
 # 
 # arkansas_other_usgs <- read_tsv(here::here("test", "arkansas_raw_other_import.txt"))
 
-#Review Minnesota files (2 other to merge) 
+# Review Minnesota files (first Minnesota test with well depths)  
+# Read in individually (just to check files) 
 
-minnesota_other_usgs_1 <- read_tsv(here::here("minnesota_test", "minnesota_well_depth_75m_below_import.txt"))
+# minnesota_other_usgs_1 <- read_tsv(here::here("minnesota_test", "minnesota_well_depth_75m_below_import.txt"))
+# 
+# minnesota_other_usgs_1$site_no <- as.numeric(minnesota_other_usgs_1$site_no)
+# 
+# minnesota_other_usgs_2 <- read_tsv(here::here("minnesota_test", "minnesota_well_depth_74_above_import.txt"))
 
-minnesota_other_usgs_1$site_no <- as.numeric(minnesota_other_usgs_1$site_no)
+# Read in manually merged file and check to see if there are any repeat rows with distinct() function 
 
-minnesota_other_usgs_2 <- read_tsv(here::here("minnesota_test", "minnesota_well_depth_74_above_import.txt"))
+# minnesota_other_full <- read_tsv(here::here("minnesota_test", "minnesota_merged_import.txt")) %>%
+#   distinct()
+# 
+# minnesota_other_full$site_no <- as.numeric(minnesota_other_full$site_no)
+# 
+# # Second Minnesota test with lat/long retrieved values 
+# 
+# minnesota_other_full_2 <- read_tsv(here::here("minnesota_test", "minnesota_second_test", "minnesota_other_merged_import_2.txt")) %>%
+#   distinct()
+# 
+# minnesota_other_full_2$site_no <- as.numeric(minnesota_other_full_2$site_no)
 
-minnesota_other_full <- read_tsv(here::here("minnesota_test", "minnesota_merged_import.txt")) %>% 
+# Third Minnesota test with county values 
+
+# minnesota_other_full_3 <- read_tsv(here::here("minnesota_test", "minnesota_third_test", "minnesota_other_merged_3.txt")) %>%
+#   distinct()
+# 
+# minnesota_other_full_3$site_no <- as.numeric(minnesota_other_full_3$site_no)
+
+# Fourth test with county values and site type 
+
+minnesota_other_full_4 <- read_tsv(here::here("minnesota_test", "minnesota_third_test", "minnesota_site_type_merged.txt")) %>%
   distinct()
+
+minnesota_other_full_4$site_no <- as.numeric(minnesota_other_full_4$site_no)
+
+# Make new dataset to filter out sites that are not GW 
+
+minnesota_gw_only <- minnesota_other_full_4 %>% 
+  filter(str_detect(site_tp_cd, "GW")) %>% 
+  select(-site_tp_cd)
+
+# Write to text file for the loop purposes 
+
+write_tsv(minnesota_gw_only, here::here("minnesota_test", "minnesota_third_test", "minnesota_gw_only.txt"))
+
 ```
 
 Merge datasets 
 
 ```{r}
+#-----------------------------------------------------------------------------------------------
+# Merge datasets for states being tested
+#-----------------------------------------------------------------------------------------------
+
 # Merge alabama_gw_usgs and alabama_other_usgs data frames using full_join()
 
 # alabama_merge <- full_join(alabama_gw_usgs, alabama_other_usgs, by = "site_no", copy = FALSE)
 
-minnesota_other_merge <- full_join(minnesota_other_usgs_1, minnesota_other_usgs_2, by = "site_no", copy = FALSE)
+# Attempt to merge files in R, not very successful. Manually merge in text file instead. 
+# minnesota_other_merge <- full_join(minnesota_other_usgs_1, minnesota_other_usgs_2, by = "site_no", copy = FALSE)
 # 
-minnesota_merge <- full_join(minnesota_gw_usgs, minnesota_other_usgs, by = "site_no", copy = FALSE)
+minnesota_merge <- full_join(minnesota_gw_usgs, minnesota_gw_only, by = "site_no", copy = FALSE)
 
 # kansas_merge <- full_join(kansas_gw_usgs, kansas_other_usgs, by = "site_no", copy = FALSE)
 # 
@@ -91,10 +139,17 @@ minnesota_merge <- full_join(minnesota_gw_usgs, minnesota_other_usgs, by = "site
 Lat Long Test 
 
 ```{r}
+#-----------------------------------------------------------------------------------------------
+# Checking to ensure Kansas and Arkansas are recognized separately 
+#-----------------------------------------------------------------------------------------------
+
+# Kansas lat/long test 
 
 lat_long_kansas <- kansas_merge %>% 
   select(site_no, dec_lat_va, dec_long_va) %>% 
   distinct(site_no, .keep_all = TRUE)
+
+# Arkansas lat/long test 
 
 lat_long_arkansas <- arkansas_merge %>% 
   select(site_no, dec_lat_va, dec_long_va) %>% 
@@ -107,19 +162,30 @@ Tidy data
 
 
 ```{r}
-# Tidy data to a final version 
-# Remove excess columns 
+#------------------------------------------------------------------------------------------------
+# Tidy data to a final version: remove excess columns, add column for dates 
+#------------------------------------------------------------------------------------------------
  
-alabama_usgs <- alabama_merge %>% 
-  select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %>% 
+# alabama_usgs <- alabama_merge %>% 
+#   select(-lev_tm, -sl_lev_va : -station_nm, -coord_acy_cd, -alt_acy_va) %>% 
+#   mutate(
+#       level_date = lubridate::parse_date_time(alabama_merge$lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE)) # this works but defaults incomplete dates to january 1st (or the 1st of the month). May not be a problem if I can figure out which ones are truly january...or modify this default? 
+
+# Minnesota 
+minnesota_usgs <- minnesota_merge %>% 
+  select(-agency_cd.x, -site_tp_cd.x, -lev_tm, -sl_lev_va : -lev_age_cd, -station_nm, -coord_acy_cd) %>% 
   mutate(
-      level_date = lubridate::parse_date_time(alabama_merge$lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE)) # this works but defaults incomplete dates to january 1st (or the 1st of the month). May not be a problem if I can figure out which ones are truly january...or modify this default? 
+      level_date = lubridate::parse_date_time(minnesota_merge$lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE))
   
 ```
 
 Convert dates 
 
 ```{r}
+#------------------------------------------------------------------------------------------------
+# Attempt to play with dates and different dates we may wish to extract from files 
+#------------------------------------------------------------------------------------------------
+
 # Create new dataframe to keep these conversions separate 
 # Convert date column from character to date ISO format (and so R recognizes as date class)
 # Create decimal date from ISO format 

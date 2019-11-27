@@ -71,7 +71,7 @@ Here I wrote a for-loop to perform the following:
 files <- list.files(path = (here::here("raw_data")))
 
 # Create a vector with all of the state names 
-state <- c("alabama", "alaska", "arizona", "arkansas", "california", "colorado", "connecticut", "delaware", "districtcolumbia", "florida", "georgia", "hawaii", "idaho", "illinois", "indiana", "iowa", "kansassecond", "kentucky", "louisiana", "maine", "maryland", "massachusetts", "michigan", "minnesota", "mississippi", "missouri", "montana", "nebraska", "nevada", "newhampshire", "newjersey", "newmexico", "newyork", "northcarolina", "northdakota", "oaklahoma", "ohio", "oregon", "pennsylvania", "puertorico", "rhodeisland", "southcarolina", "southdakota", "tennessee", "texas", "utah", "vermont", "virginia", "virginislands", "washington", "westvirginia", "wisconsin", "wyoming")
+state <- c("alabama", "alaska", "arizona", "arkansas", "california", "colorado", "connecticut", "delaware", "districtcolumbia", "florida", "georgia", "hawaii", "idaho", "illinois", "indiana", "iowa", "kansassecond", "kentucky", "louisiana", "maine", "maryland", "massachusetts", "michigan", "minnesota", "mississippi", "missouri", "montana", "nebraska", "nevada", "newhampshire", "newjersey", "newmexico", "newyork", "northcarolina", "northdakota", "ohio", "oklahoma", "oregon", "pennsylvania", "puertorico", "rhodeisland", "southcarolina", "southdakota", "tennessee", "texas", "utah", "vermont", "virginia", "virginislands", "washington", "westvirginia", "wisconsin", "wyoming")
 ```
 
 
@@ -157,7 +157,7 @@ for (i in 1:length(state)) { # Identifying to pull state names
 # Tidy data and remove excess columns in new dataframe 
   
   state_files_usgs <- state_files_merge %>% 
-    select(-station_nm, -coord_acy_cd, -agency_cd.y, -site_tp_cd, -lev_tm, -sl_lev_va : -lev_age_cd) 
+    select(-station_nm, -coord_acy_cd, -agency_cd.x, -lev_tm, -sl_lev_va : -lev_age_cd) 
 
 # Call the results specified above for the for-loop (the final merged dataframe) 
 # Assign each state name to its corresponding final merged dataframe 
@@ -204,14 +204,10 @@ lat_long_entire_usa_s <- entire_usgs_usa %>%
   select(site_no, dec_lat_va, dec_long_va, state) %>% 
   distinct(site_no, .keep_all = TRUE)
 
-# Attempt to split dataframe in two 
-
-# split(lat_long_entire_usa_s, )
 
 # Write resulting dataframe to tsv 
 
-write_tsv(lat_long_entire_usa_s, "lat_long_entire_usa_s.txt")
-# write_csv(lat_long_entire_usa_s, "lat_long_entire_usa_s.csv")
+write_tsv(lat_long_entire_usa_s, here::here("lat_long_data", "lat_long_entire_usa_s.txt"))
 
 # Same as above but without the state name column 
 
@@ -219,12 +215,10 @@ lat_long_entire_usa <- entire_usgs_usa %>%
   select(site_no, dec_lat_va, dec_long_va) %>% 
   distinct(site_no, .keep_all = TRUE) 
 
-
-
 # Write resulting dataframe to tsv 
 
-# write_tsv(lat_long_entire_usa, "lat_long_entire_usa.txt")
-# write_csv(lat_long_entire_usa, "lat_long_entire_usa.csv")
+write_tsv(lat_long_entire_usa, here::here("lat_long_data", "lat_long_entire_usa.txt"))
+
   
   
 ```

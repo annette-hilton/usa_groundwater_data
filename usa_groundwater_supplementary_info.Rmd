@@ -2,7 +2,7 @@
 title: "USA Well Water Data"
 author: "Annette Hilton"
 date: "10/31/2019"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -119,6 +119,8 @@ Generated URL Section
 **Minnesota exception**
 Please note that because Minnesota has so many well sites, they cannot be downloaded all at once. In order to obtain all wells (and not an incorrect subset of the wells) the following parameters were applied instead: 
 
+First attempt: (total n = 121905, distinct = 121897)
+
 - Select Geographic Area: Select state of interest
 - Site Attribute: "Well depth" 
 - Click "Submit" 
@@ -128,8 +130,56 @@ Please note that because Minnesota has so many well sites, they cannot be downlo
 - Well depth: 
   - Greater than (blank) and less than (blank)
   - For Minnesota (two queries to obtain all results possible): 
-  - Greater than (0) and less than (75 m)
+  - Greater than (0) and less than (75 m) 
+    - Yields n = 36107
   - Greater than (74.5 m) and less than (blank) 
+    - Yields n = 85798
+
+**Issue with method 1:** The issue with method 1 is that not all wells are recorded as having a well depth, therefore searching by well depth does not yield all possible results. 
+  
+Second attempt: (total n = 129878, distinct = 127737)
+
+- Select Geographic Area: Select state of interest
+- Site Attribute: "Lat/long box" 
+- Click "Submit" 
+
+(Next page) 
+
+- Lat/Long box: 
+  - North: 50.000
+  - South: 43.000
+  - West: -95.000 
+  - East: -88.000 
+  - n = 90868
+  
+- Lat/Long box: 
+  - North: 50.000
+  - South: 43.000
+  - West: -101.000
+  - East: -94.900
+  - n = 39010
+
+**Issue with method 2:** We cannot filter specifically for well sites. Searching with lat/long values will yield all sites, regardless of type, within the lat/long range. Additional risk of overlap between lat/long values or missing values. 
+  
+Third attempt: (total n = 127582)
+
+- Select Geographic Area: Select state of interest
+- Site Attribute: "County" 
+- Click "Submit" 
+
+(Next page)
+
+- County: A-H (n = 58866)
+- County: L-Z (n = 68716)
+
+
+**Issue with method 3:** We cannot filter specifically for well sites. Searching with county will yield all sites within that county. However, there is no risk of missing a site. All sites were returned in full (n = 127582) as reported on Minnesota's web portal.
+
+**Minnesota solution:**
+
+The finalized solution for Minnesota is to utilize method 3 to obtain all values (127582), then select based on GW sites only (n = 123784), then feed this resulting dataframe into the loop to be merged, tidied, etc.
+
+We have performed due diligence to ensure all sites are captured. 
 
 #### Data Management Process 
 
