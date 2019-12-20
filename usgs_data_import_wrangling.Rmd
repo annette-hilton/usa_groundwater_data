@@ -36,6 +36,7 @@ Here I attempt to import and wrangle data for all 53 states/territories.
 library(tidyverse)
 library(here)
 library(lubridate)
+library(expss)
 
 # Disable scientific notation 
 
@@ -193,7 +194,6 @@ entire_usgs_usa <- do.call("rbind", merge_list)
 
 ### Pull latitude and longitude for ArcGIS purposes 
 
-Something is going wrong here. First of all, just to be aware, the entire_usgs_usa is all characters (ugh) 
 
 ```{r}
 
@@ -203,6 +203,8 @@ Something is going wrong here. First of all, just to be aware, the entire_usgs_u
 lat_long_entire_usa_s <- entire_usgs_usa %>% 
   select(site_no, dec_lat_va, dec_long_va, state) %>% 
   distinct(site_no, .keep_all = TRUE)
+
+lat_long_entire_usa_s$site_no <- as.numeric(lat_long_entire_usa_s$site_no)
 
 
 # Write resulting dataframe to tsv 
@@ -221,5 +223,27 @@ write_tsv(lat_long_entire_usa, here::here("lat_long_data", "lat_long_entire_usa.
 
   
   
+```
+
+### Use anti_join() to identify new sites from 2017 to 2019 
+
+```{r}
+
+# Attempt equivalent of v-lookup in R (anti-join)
+# Read in 2017 USGS Data (from Scott Jasechko) 
+
+# usgs_2017 <- readr::read_csv(here::here("lat_long_data", "usgs_2017_data.csv"))
+usgs_2017 <- readr::read_tsv(here::here("lat_long_data", "usgs_2017_data.txt"))
+
+# Use anti-join to find non-matches from the new usgs 2019 data and the usgs 2017 data (new sites) 
+
+# First dataframe: "usgs_2017" 
+# Second dataframe: "lat_long_entire_usa_s"
+
+new_usgs_sites <- anti_join(lat_long_entire_usa_s, usgs_2017, by = "site_no")
+
+# Returns dataframe with 640,937 new sites 
+
+
 ```
 
