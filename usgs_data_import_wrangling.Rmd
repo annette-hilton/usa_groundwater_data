@@ -36,7 +36,6 @@ Here I attempt to import and wrangle data for all 53 states/territories.
 library(tidyverse)
 library(here)
 library(lubridate)
-library(expss)
 
 # Disable scientific notation 
 
@@ -146,14 +145,11 @@ for (i in 1:length(state)) { # Identifying to pull state names
                           ))
 
 # Merge both files using full_join() and merge by column "site_no" 
-# Use mutate to add a column for state name and add column for level_date that R recognizes as a date
+# Use mutate to add a column for state name 
   
   state_files_merge <- full_join(x = import_usgs, y = raw_import_usgs, by = "site_no", copy = FALSE) %>% 
     mutate(state = name)
-      # level_date = lubridate::parse_date_time(lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE), 
-      # level_decimal_date = lubridate::decimal_date(level_date),
-      # level_month = lubridate::month(level_date, label = TRUE),
-      # level_year = lubridate::year(level_date))
+     
   
 # Tidy data and remove excess columns in new dataframe 
   
@@ -180,15 +176,26 @@ for (i in 1:length(state)) { # Identifying to pull state names
 ### Merge all dataframes to final dataframe 
 
 ```{r}
+#-----------------------------------------------------------------------------------------------------
+# Merge all 53 states/territories into one dataframe 
+#-----------------------------------------------------------------------------------------------------
 
 # Create list of dataframes for rbind function (all 53 states/territories)
 
 merge_list <- mget(ls(pattern = "df_"))
 
 # Use the do.call function and rbind to merge all of the dataframes from the list vertically (since variables are the same) 
+# Use mutate and lubridate to add columns for date, decimal date, month, and year 
 
-entire_usgs_usa <- do.call("rbind", merge_list)
+entire_usgs_usa <- do.call("rbind", merge_list) %>% 
+   mutate(
+    level_date = lubridate::parse_date_time(lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE),
+    level_decimal_date = lubridate::decimal_date(level_date),
+    level_month = lubridate::month(level_date, label = TRUE),
+    level_year = lubridate::year(level_date))
 
+write_tsv(entire_usgs_usa, "entire_usgs_usa.txt")
+ 
 
 ```
 
@@ -196,6 +203,9 @@ entire_usgs_usa <- do.call("rbind", merge_list)
 
 
 ```{r}
+#---------------------------------------------------------------------------------------------------------
+# Latitude and Longitude data
+#---------------------------------------------------------------------------------------------------------
 
 # Separate latitude and longitude in separate dataframe 
 # Remove duplicate site values (only keep each site once)
@@ -228,11 +238,13 @@ write_tsv(lat_long_entire_usa, here::here("lat_long_data", "lat_long_entire_usa.
 ### Use anti_join() to identify new sites from 2017 to 2019 
 
 ```{r}
+#---------------------------------------------------------------------------------------------------------
+# New sites from 2017 to 2019 
+#---------------------------------------------------------------------------------------------------------
 
 # Attempt equivalent of v-lookup in R (anti-join)
 # Read in 2017 USGS Data (from Scott Jasechko) 
 
-# usgs_2017 <- readr::read_csv(here::here("lat_long_data", "usgs_2017_data.csv"))
 usgs_2017 <- readr::read_tsv(here::here("lat_long_data", "usgs_2017_data.txt"))
 
 # Use anti-join to find non-matches from the new usgs 2019 data and the usgs 2017 data (new sites) 
@@ -243,6 +255,10 @@ usgs_2017 <- readr::read_tsv(here::here("lat_long_data", "usgs_2017_data.txt"))
 new_usgs_sites <- anti_join(lat_long_entire_usa_s, usgs_2017, by = "site_no")
 
 # Returns dataframe with 640,937 new sites 
+
+# Write resulting dataframe to tsv file 
+
+write_tsv(new_usgs_sites, here::here("lat_long_data", "new_usgs_sites.txt"))
 
 
 ```

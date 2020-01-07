@@ -1,0 +1,62 @@
+---
+title: "Constraining USGS Well Water Data"
+author: "Annette Hilton"
+date: "1/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Attach packages
+
+library(tidyverse)
+library(here)
+library(lubridate)
+
+# Disable scientific notation 
+
+options(scipen=999)
+
+```
+
+```{r}
+
+# Read in the full dataset for all well water measurements for the USA 
+
+entire_usa_gw <- readr::read_tsv("entire_usgs_usa.txt")
+
+```
+
+```{r}
+
+# Constrain dataset by dates 
+
+# 1. Remove observations with NA values 
+
+entire_usa_gw_dates <- entire_usa_gw %>% 
+  filter(!lev_dt == "NA")
+
+# Removed 539759 observations
+
+# 2. Find way to remove sites that do not have a duplicate (more than one) measurement 
+
+# group by then filter? 
+
+entire_usa_gw_dates2 <- entire_usa_gw_dates %>% 
+  group_by(site_no) %>% 
+  filter( n() > 1)
+
+# Removed 669256 observations 
+
+
+```
+
+**Need to brainstorm a way to sort by decadal observations**
+
+Thoughts on data visualization 
+
+How would I want to visualize this data? 
+Changes over time. Individual sites changes over time? Entire USA changes over time with all sites (scatter)? 

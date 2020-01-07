@@ -173,9 +173,12 @@ Tidy data
 
 # Minnesota 
 minnesota_usgs <- minnesota_merge %>% 
-  select(-agency_cd.x, -site_tp_cd.x, -lev_tm, -sl_lev_va : -lev_age_cd, -station_nm, -coord_acy_cd) %>% 
+  select(-sl_lev_va: -station_nm, -coord_acy_cd, -dec_coord_datum_cd) %>% 
   mutate(
-      level_date = lubridate::parse_date_time(minnesota_merge$lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE))
+      level_date = lubridate::parse_date_time(minnesota_merge$lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE),
+      level_decimal_date = lubridate::decimal_date(level_date),
+      level_month = lubridate::month(level_date, label = TRUE),
+      level_year = lubridate::year(level_date))
   
 ```
 
@@ -205,6 +208,13 @@ alabama_usgs_date <- alabama_usgs %>%
    
 ```
 
+```{r}
+#----------------------------------------------------------------------------------------------------
+# Play with dates more
+#----------------------------------------------------------------------------------------------------
+
+
+```
 
 
 
