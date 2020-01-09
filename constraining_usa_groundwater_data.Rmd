@@ -31,28 +31,53 @@ entire_usa_gw <- readr::read_tsv("entire_usgs_usa.txt")
 ```
 
 ```{r}
-
+#----------------------------------------------------------------------------------------------------------
 # Constrain dataset by dates 
+#----------------------------------------------------------------------------------------------------------
 
-# 1. Remove observations with NA values 
+# Remove observations with NA values 
 
 entire_usa_gw_dates <- entire_usa_gw %>% 
   filter(!lev_dt == "NA")
 
 # Removed 539759 observations
 
-# 2. Find way to remove sites that do not have a duplicate (more than one) measurement 
 
-# group by then filter? 
+```
 
-entire_usa_gw_dates2 <- entire_usa_gw_dates %>% 
+```{r}
+#--------------------------------------------------------------------------------------------------------
+# Constrain by number of observations (n) 
+#--------------------------------------------------------------------------------------------------------
+
+# Constrain by number of observations (n > 1) 
+
+entire_usa_gw_1 <- entire_usa_gw_dates %>% 
   group_by(site_no) %>% 
   filter( n() > 1)
 
 # Removed 669256 observations 
 
+# Constrain by number of observations (n > 30) 
 
+entire_usa_gw_30 <- entire_usa_gw_dates %>% 
+  group_by(site_no) %>% 
+  filter( n() > 29)
+
+entire_usa_gw_30_count <- entire_usa_gw_30 %>% 
+  count(site_no, level_year)
+
+# Constrain by number of observations ( n > 100) 
+
+entire_usa_gw_100 <- entire_usa_gw_dates %>% 
+  group_by(site_no) %>% 
+  filter( n() > 99) 
+
+entire_usa_gw_100_count <- entire_usa_gw_100 %>% 
+  count(site_no, level_year)
 ```
+
+
 
 **Need to brainstorm a way to sort by decadal observations**
 
