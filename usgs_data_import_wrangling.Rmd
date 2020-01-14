@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, error = FALSE, warning = FALSE)
 ```
+
 ## Introduction
 
 This document is complimentary to "USA Well Water Data." Please reference "USA Well Water Data" for more information regarding the goals and parameters of the project.
@@ -191,6 +192,7 @@ entire_usgs_usa <- do.call("rbind", merge_list) %>%
     level_decimal_date = lubridate::decimal_date(level_date),
     level_month = lubridate::month(level_date, label = TRUE),
     level_year = lubridate::year(level_date))
+entire_usgs_usa$site_no <- as.numeric(entire_usgs_usa$site_no)
 
 # Write dataframe to tsv
 
@@ -260,5 +262,12 @@ new_usgs_sites <- anti_join(lat_long_entire_usa_s, usgs_2018, by = "site_no")
 write_tsv(new_usgs_sites, here::here("lat_long_data", "new_usgs_sites.txt"))
 
 
+```
+
+```{r}
+# Attempt v-look up but with entire database (not distinct) 
+
+new_usgs_sites_all <- anti_join(entire_usgs_usa, usgs_2018, by = "site_no") %>% 
+  filter(!lev_dt == "NA")
 ```
 

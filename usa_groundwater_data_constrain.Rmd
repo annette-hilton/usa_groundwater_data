@@ -52,17 +52,44 @@ entire_usa_gw_dates <- entire_usa_gw %>%
 
 # Constrain by number of observations (n > 1) 
 
-entire_usa_gw_1 <- entire_usa_gw_dates %>% 
-  group_by(site_no) %>% 
-  filter( n() > 1)
+# entire_usa_gw_1 <- entire_usa_gw_dates %>% 
+#   group_by(site_no) %>% 
+#   filter( n() > 1)
+# 
+# # Removed 669256 observations 
+# 
+# # Constrain by number of observations (n > 30) 
+# 
+# entire_usa_gw_30 <- entire_usa_gw_dates %>% 
+#   group_by(site_no) %>% 
+#   filter( n() > 29)
+# 
+# entire_usa_gw_30_count <- entire_usa_gw_30 %>% 
+#   count(site_no, level_year)
+# 
+# # Constrain by number of observations ( n > 100) 
+# 
+# entire_usa_gw_100 <- entire_usa_gw_dates %>% 
+#   group_by(site_no) %>% 
+#   filter( n() > 99) 
+# 
+# entire_usa_gw_100_count <- entire_usa_gw_100 %>% 
+#   count(site_no, level_year)
+```
 
-# Removed 669256 observations 
+**Try to constrain within date range, not just > 1940...because theoretically they all wiill show up** 
+
+```{r}
+#--------------------------------------------------------------------------------------------------------
+# Constrain by number of observations (n) and time-scale 
+#--------------------------------------------------------------------------------------------------------
 
 # Constrain by number of observations (n > 30) 
 
-entire_usa_gw_30 <- entire_usa_gw_dates %>% 
+entire_usa_gw_30_d <- entire_usa_gw_dates %>% 
   group_by(site_no) %>% 
-  filter( n() > 29)
+  filter( n() > 29) %>% 
+  filter(level_year > 1940)
 
 entire_usa_gw_30_count <- entire_usa_gw_30 %>% 
   count(site_no, level_year)
@@ -76,7 +103,6 @@ entire_usa_gw_100 <- entire_usa_gw_dates %>%
 entire_usa_gw_100_count <- entire_usa_gw_100 %>% 
   count(site_no, level_year)
 ```
-
 
 
 **Need to brainstorm a way to sort by decadal observations**
