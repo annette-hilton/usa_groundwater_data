@@ -19,6 +19,8 @@ This project is the compiliation of US Geological Survey well water data for all
 
 **Folders:** 
 
+**IMPORTANT Note on Data Files:** There are raw and produced data files in the repo at the moment. Early in the project, I included these in the repo and my commits to github. Since github cannot support large files, I stopped committing changes to these files and future large datafiles, prefering instead to keep code only. **If you are using this repo** I highly suggest downloading the raw data from USGS directly for your analysis. In Rmarkdown document "usa_groundwater_supplementary_info" instructions exist on how to download the original and most-up-to-date data directly from USGS. **This is a warning** that there may be improvements, corrections, or errors contained in the current data files. They are in the repo as an example only of how the repo is organized and how the code is run. 
+
 1. raw_data: Contains the raw datafiles downloaded from USGS for direct import into Rstudio. 
 
 2. test: Contains test datafiles used in "usa_groundwater_data_import" Rmd for experimental use of coding methods. 
