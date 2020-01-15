@@ -57,18 +57,18 @@ entire_usa_gw_dates <- entire_usa_gw %>%
 #   filter( n() > 1)
 # 
 # # Removed 669256 observations 
-# 
-# # Constrain by number of observations (n > 30) 
-# 
+
+# Constrain by number of observations (n > 30) (Removed 2018880 observations)
+
 entire_usa_gw_30 <- entire_usa_gw_dates %>%
   group_by(site_no) %>%
   filter( n() > 29)
-# 
+
 entire_usa_gw_30_count <- entire_usa_gw_30 %>%
   count(site_no, level_year)
-# 
-# # Constrain by number of observations ( n > 100) 
-# 
+
+# Constrain by number of observations ( n > 100) (Removed 4189182 observations)
+
 entire_usa_gw_100 <- entire_usa_gw_dates %>%
   group_by(site_no) %>%
   filter( n() > 99)
@@ -163,47 +163,66 @@ usgs_2018 <- readr::read_tsv(here::here("lat_long_data", "usgs_2018_data.txt"))
 # First dataframe: "usgs_2018" 
 # Second dataframe: "lat_long_entire_usa_s"
 
-new_usgs_sites <- anti_join(lat_long_entire_usa_s, usgs_2018, by = "site_no")
+new_usgs_sites_latlong <- anti_join(lat_long_entire_usa_s, usgs_2018, by = "site_no")
 
 # Returns dataframe with 640,937 new sites 
 
-# Double check with opposite approach
+# Double check with opposite approach (consistent, returns 640,937 sites)
 
 new_usgs_sites_all_check <- anti_join(entire_usa_gw, usgs_2018, by = "site_no") %>% 
   distinct(site_no, .keep_all = TRUE)
 
 # Write resulting dataframe to tsv file 
 
-write_tsv(new_usgs_sites, here::here("lat_long_data", "new_usgs_sites.txt"))
+write_tsv(new_usgs_sites_latlong, here::here("lat_long_data", "new_usgs_sites.txt"))
 
 ```
 
 ```{r}
 
-# Attempt v-look up but with entire database (not distinct) 
+# Attempt v-look up but with all observations (not distinct) 
 
-new_usgs_sites_all <- anti_join(entire_usa_gw, usgs_2018, by = "site_no") %>% 
+new_sites_all <- anti_join(entire_usa_gw, usgs_2018, by = "site_no") 
+
+# Attempt v-look up but with all observations (not distinct) and no NA date values 
+
+new_sites_date <- anti_join(entire_usa_gw, usgs_2018, by = "site_no") %>% 
   filter(!lev_dt == "NA")
 
 # Unique (distinct) sites without NA values for dates 
 
-new_usgs_sites_unique <- anti_join(entire_usa_gw, usgs_2018, by = "site_no") %>% 
+new_sites_unique <- anti_join(entire_usa_gw, usgs_2018, by = "site_no") %>% 
   filter(!lev_dt == "NA") %>% 
   distinct(site_no, .keep_all = TRUE)
 
 # Attempt to find out new sites date range 
 
-new_usgs_sites_dates <- new_usgs_sites_all %>% 
+new_sites_drange <- new_sites_date %>% 
   group_by(site_no) %>% 
   filter(level_year %in% c(1940:2019))
 
 # Attempt to find out new sites count (per site)
 
-new_usgs_sites_counts <- new_usgs_sites_all %>% 
+new_sites_counts <- new_sites_date %>% 
   group_by(site_no) %>% 
   summarize(
-    count = n() 
-  )
+    count = n())
+
+# Attempt to find out new sites count by state (distinct, from the total 640937 sites)
+
+new_sites_state <- new_usgs_sites_all_check %>% 
+  group_by(state) %>% 
+  summarize(
+    count = n()) %>% 
+  arrange(-count)
+
+# New sites count by state (distinct, but with no NA dates, from the 119500 sites) 
+
+new_sites_state_date <- new_sites_unique %>% 
+  group_by(state) %>% 
+  summarize(
+    count = n()) %>% 
+  arrange(-count)
 
 ```
 
