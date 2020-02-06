@@ -1,0 +1,145 @@
+---
+title: "Glacial Well Water Well Analysis"
+author: "Annette Hilton"
+date: "2/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Attach Packages and Data 
+
+```{r}
+# Attach packages 
+
+library(tidyverse)
+library(here)
+library(janitor)
+
+# Disable scientific notation 
+
+options(scipen=999)
+
+```
+
+```{r}
+# Read in the full dataset for all well water measurements for the USA 
+
+entire_usa_gw <- readr::read_tsv("entire_usgs_usa.txt")
+
+```
+
+## Prep USGS Well Data to Import in ArcGIS 
+
+```{r}
+#----------------------------------------------------------------------------------
+# ArcGIS Data Prep for Glacial-Well location exercise 
+#----------------------------------------------------------------------------------
+
+# Remove wells that have no date associated with them 
+# Remove duplicate site values (only keep each site once) 
+
+arc_entire_usa <- entire_usa_gw %>% 
+  filter(!lev_dt == "NA") %>% 
+  distinct(site_no, .keep_all = TRUE) 
+
+# Separate latitude and longitude in separate dataframe
+
+arc_entire_usa_glacial <- arc_entire_usa %>% 
+  select(site_no, dec_lat_va, dec_long_va)
+arc_entire_usa_glacial$site_no <- as.character(arc_entire_usa_glacial$site_no)
+
+# Write to tsv for import to ArcGIS 
+
+write_csv(arc_entire_usa_glacial, here::here("glacial_data", "arc_entire_usa_glacial.txt"))
+
+write_csv(arc_entire_usa_glacial, here::here("glacial_data", "arc_entire_usa_glacial.csv"))
+
+
+```
+
+**Remember to re-run in ArcGIS to account for missing wells** 
+
+## Import and Work with Results from ArcGIS 
+
+```{r}
+# Import Data from ArcGIS (well sites within proximity to glacier) 
+
+# Import wells 10 km from glacier
+
+wells_10km <- readr::read_csv(here::here("glacial_data", "wells_10km.txt"))
+
+# Second attempt: 
+
+wells_10km_2 <- readr::read_csv(here::here("glacial_data", "wells_10km_2.txt"))
+
+# Import wells 5 km from glacier 
+
+wells_5km <- readr::read_csv(here::here("glacial_data", "wells_5km.txt"))
+
+```
+
+```{r}
+# Create vector from wells with site ID only 
+
+wells_10km_vector <- wells_10km %>% 
+  pull(site_no)
+
+wells_10km_vector_2 <- wells_10km_2 %>% 
+  pull(site_no)
+
+wells_5km_vector <- wells_5km %>% 
+  pull(site_no)
+```
+
+```{r}
+# Attempt to filter by vector/site_no
+# ERROR: It appears that ArcGIS may have messed with the site_no when it put them in scientific notation, now they are no longer unique 
+
+wells_10_usgs_test <- entire_usa_gw %>%
+  filter(site_no %in% c(wells_10km_vector_2))
+
+```
+
+```{r}
+# Attempt different method using semi_join() and lat/long unique ids 
+
+# Wells within 10km 
+
+wells_10_usgs <- semi_join(entire_usa_gw, wells_10km, by = c("dec_lat_va", "dec_long_va"))
+
+# Wells within 5km 
+
+wells_5_usgs <- semi_join(entire_usa_gw, wells_5km, by = c("dec_lat_va", "dec_long_va"))
+```
+
+```{r}
+# Constrain by number of observations 
+
+# Constrain by number of observations (n > 1) 
+
+wells_10_usgs_no1 <- wells_10_usgs %>%
+  group_by(c(dec_lat_va, dec_long_va)) %>%
+  filter( n() > 1)
+
+# Constrain by number of observations (n > 30) (Removed 2018880 observations)
+
+entire_usa_gw_30 <- entire_usa_gw_dates %>%
+  group_by(site_no) %>%
+  filter( n() > 29)
+
+entire_usa_gw_30_count <- entire_usa_gw_30 %>%
+  count(site_no, level_year)
+
+# Constrain by number of observations ( n > 100) (Removed 4189182 observations)
+
+entire_usa_gw_100 <- entire_usa_gw_dates %>%
+  group_by(site_no) %>%
+  filter( n() > 99)
+
+entire_usa_gw_100_count <- entire_usa_gw_100 %>%
+  count(site_no, level_year)
+```
+

@@ -226,3 +226,29 @@ new_sites_state_date <- new_sites_unique %>%
 
 ```
 
+```{r}
+#---------------------------------------------------------------------------------------------------------
+# ArcGIS Data Prep for Glacial-Well location exercise 
+#---------------------------------------------------------------------------------------------------------
+
+# Separate latitude and longitude in separate dataframe 
+# Remove duplicate site values (only keep each site once)
+
+arc_entire_usa <- entire_usa_gw %>% 
+  distinct(site_no, .keep_all = TRUE) 
+
+# Write resulting dataframe to tsv 
+
+# write_tsv(lat_long_entire_usa, here::here("lat_long_data", "lat_long_entire_usa.txt"))
+
+arc_entire_usa_parsed <- arc_entire_usa %>% 
+  filter(!lev_dt == "NA") 
+
+arc_entire_usa_GIS <- arc_entire_usa_parsed %>% 
+  select(site_no, dec_lat_va, dec_long_va) 
+
+# Write to tsv for import to ArcGIS 
+
+write_tsv(arc_entire_usa_GIS, here::here("lat_long_data", "arc_entire_usa_glacial.txt"))
+```
+
