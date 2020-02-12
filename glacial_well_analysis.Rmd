@@ -60,7 +60,7 @@ write_csv(arc_entire_usa_glacial, here::here("glacial_data", "arc_entire_usa_gla
 
 ```
 
-**Remember to re-run in ArcGIS to account for missing wells** 
+
 
 ## Import and Work with Results from ArcGIS 
 
@@ -69,77 +69,125 @@ write_csv(arc_entire_usa_glacial, here::here("glacial_data", "arc_entire_usa_gla
 
 # Import wells 10 km from glacier
 
-wells_10km <- readr::read_csv(here::here("glacial_data", "wells_10km.txt"))
+wells_10km <- readr::read_csv(here::here("glacial_data", "accurate_well_data", "wells_10km.txt"))
 
-# Second attempt: 
-
-wells_10km_2 <- readr::read_csv(here::here("glacial_data", "wells_10km_2.txt"))
 
 # Import wells 5 km from glacier 
 
-wells_5km <- readr::read_csv(here::here("glacial_data", "wells_5km.txt"))
+wells_5km <- readr::read_csv(here::here("glacial_data", "accurate_well_data", "wells_5km.txt"))
 
+```
+
+```{r}
+# Tidy well data from ArcGIS 
+
+# Wells within 10 km 
+
+wells_10_tidy <- wells_10km %>% 
+  clean_names() %>% 
+  mutate(site = str_remove(site, pattern = "x")) %>% 
+  mutate(site_no = str_remove(site, pattern = "x")) %>% 
+   select(-oid, -site) 
+
+# Wells within 5km
+
+wells_5_tidy <- wells_5km %>% 
+  clean_names() %>% 
+  mutate(site = str_remove(site, pattern = "x")) %>% 
+  mutate(site_no = str_remove(site, pattern = "x")) %>% 
+   select(-oid, -site)
+ 
 ```
 
 ```{r}
 # Create vector from wells with site ID only 
 
-wells_10km_vector <- wells_10km %>% 
+wells_10km_vector <- wells_10_tidy %>% 
   pull(site_no)
 
-wells_10km_vector_2 <- wells_10km_2 %>% 
-  pull(site_no)
-
-wells_5km_vector <- wells_5km %>% 
+wells_5km_vector <- wells_5_tidy %>% 
   pull(site_no)
 ```
 
 ```{r}
 # Attempt to filter by vector/site_no
-# ERROR: It appears that ArcGIS may have messed with the site_no when it put them in scientific notation, now they are no longer unique 
-
-wells_10_usgs_test <- entire_usa_gw %>%
-  filter(site_no %in% c(wells_10km_vector_2))
-
-```
-
-```{r}
-# Attempt different method using semi_join() and lat/long unique ids 
 
 # Wells within 10km 
 
-wells_10_usgs <- semi_join(entire_usa_gw, wells_10km, by = c("dec_lat_va", "dec_long_va"))
+wells_10_usgs <- entire_usa_gw %>%
+  filter(site_no %in% c(wells_10km_vector))
 
 # Wells within 5km 
 
-wells_5_usgs <- semi_join(entire_usa_gw, wells_5km, by = c("dec_lat_va", "dec_long_va"))
+wells_5_usgs <- entire_usa_gw %>%
+  filter(site_no %in% c(wells_5km_vector))
+
+
 ```
 
 ```{r}
-# Constrain by number of observations 
+# COMMENTED OUT BECAUSE METHOD ABOVE WORKS, THIS WAS JUST DOUBLE CHECKING 
 
-# Constrain by number of observations (n > 1) 
+# # Attempt different method using semi_join() and lat/long unique ids 
+# 
+# # Wells within 10km 
+# 
+# wells_10_usgs <- semi_join(entire_usa_gw, wells_10km, by = c("dec_lat_va", "dec_long_va"))
+# 
+# # Wells within 5km 
+# 
+# wells_5_usgs <- semi_join(entire_usa_gw, wells_5km, by = c("dec_lat_va", "dec_long_va"))
+```
+
+Constrain by number of observations 
+
+```{r}
+#--------------------------------------------------------------------------
+# Constrain by number of observations for wells 10km 
+#--------------------------------------------------------------------------
+
+# Constrain by number of observations (n > 1) (total of 5937)
 
 wells_10_usgs_no1 <- wells_10_usgs %>%
-  group_by(c(dec_lat_va, dec_long_va)) %>%
+  group_by(site_no) %>%
   filter( n() > 1)
 
-# Constrain by number of observations (n > 30) (Removed 2018880 observations)
+# Constrain by number of observations (n > 30) (total 4807)
 
-entire_usa_gw_30 <- entire_usa_gw_dates %>%
+wells_10_usgs_no30 <- wells_10_usgs %>%
   group_by(site_no) %>%
   filter( n() > 29)
 
-entire_usa_gw_30_count <- entire_usa_gw_30 %>%
-  count(site_no, level_year)
+# Constrain by number of observations ( n > 100) (total 2431)
 
-# Constrain by number of observations ( n > 100) (Removed 4189182 observations)
-
-entire_usa_gw_100 <- entire_usa_gw_dates %>%
+wells_10_usgs_no100 <- wells_10_usgs %>%
   group_by(site_no) %>%
   filter( n() > 99)
 
-entire_usa_gw_100_count <- entire_usa_gw_100 %>%
-  count(site_no, level_year)
+```
+
+```{r}
+#---------------------------------------------------------------------------
+# Constrain by number of observations for wells 5km
+#---------------------------------------------------------------------------
+
+# Constrain by number of observations (n > 1) (total of 471)
+
+wells_5_usgs_no1 <- wells_5_usgs %>%
+  group_by(site_no) %>%
+  filter( n() > 1)
+
+# Constrain by number of observations (n > 30) (total 425)
+
+wells_5_usgs_no30 <- wells_5_usgs %>%
+  group_by(site_no) %>%
+  filter( n() > 29)
+
+# Constrain by number of observations ( n > 100) (total 101)
+
+wells_5_usgs_no100 <- wells_5_usgs %>%
+  group_by(site_no) %>%
+  filter( n() > 99)
+
 ```
 

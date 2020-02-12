@@ -1,0 +1,87 @@
+---
+title: "Confined vs Unconfined Aquifer Analysis"
+author: "Annette Hilton"
+date: "2/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Attach Packages and Data 
+
+```{r}
+# Attach packages 
+
+library(tidyverse)
+library(here)
+library(janitor)
+
+# Disable scientific notation 
+
+options(scipen=999)
+```
+
+```{r}
+# Read in the full dataset for all well water measurements for the USA 
+
+entire_usa_gw <- readr::read_tsv("entire_usgs_usa.txt")
+```
+
+## Refine dataset for the Mississippi Embayment 
+
+```{r}
+# Only keep well data for states in ME: 
+# Missouri, Illinois, Kentucky, Tennessee, Arkansas, Mississippi, Alabama, Louisiana, Texas
+
+me <- entire_usa_gw %>% 
+  filter(state %in% c("alabama", "arkansas", "illinois", "kentucky", "louisiana", "missouri", "mississippi", "tennessee", "texas"))
+
+# If-else statement to have either well_depth or hole_depth (OR) 
+
+me_usgs_gw <- me %>% 
+  filter(!well_depth_va == "NA" | !hole_depth_va == "NA")
+
+# Attempts at if-else type filtering 
+
+# me_usgs_gw <- me %>% 
+#   filter_at(vars(well_depth_va, hole_depth_va), all_vars(."NA"))
+#   
+#   filter(
+#     if (well_depth_va == "NA") 
+#       else hole_depth_va)
+
+```
+
+## Create experimental subset of data to try date constraint on 
+
+```{r}
+# Only keep alabama 
+# Remove any values that do not have a well depth 
+# Remove any values that do not have a date associated 
+
+exp_sub <- me_usgs_gw %>% 
+  filter(state == "alabama") %>%
+  filter(!well_depth_va == "NA") %>% 
+  filter(!lev_dt == "NA")
+  
+```
+
+```{r}
+# Confine by number of observations 
+
+exp_sub_n <- exp_sub %>% 
+  group_by(site_no) %>% 
+  filter(n() > 29) 
+
+```
+
+```{r}
+# Now confine by date ranges
+
+exp_sub_date <- exp_sub %>% 
+  group_by(site_no) %>% 
+  filter(level_year %in% c(1940:2019)) 
+```
+
