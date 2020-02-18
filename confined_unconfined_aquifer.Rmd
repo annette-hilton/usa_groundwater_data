@@ -33,15 +33,20 @@ entire_usa_gw <- readr::read_tsv("entire_usgs_usa.txt")
 
 ```{r}
 # Only keep well data for states in ME: 
-# Missouri, Illinois, Kentucky, Tennessee, Arkansas, Mississippi, Alabama, Louisiana, Texas
+# Missouri, Illinois, Kentucky, Tennessee, Arkansas, Mississippi, Alabama, Louisiana
 
 me <- entire_usa_gw %>% 
-  filter(state %in% c("alabama", "arkansas", "illinois", "kentucky", "louisiana", "missouri", "mississippi", "tennessee", "texas"))
+  filter(state %in% c("alabama", "arkansas", "illinois", "kentucky", "louisiana", "missouri", "mississippi", "tennessee"))
 
 # If-else statement to have either well_depth or hole_depth (OR) 
+# Remove well depths of 0
+# Remove wells that do not have a date associated with them 
 
 me_usgs_gw <- me %>% 
-  filter(!well_depth_va == "NA" | !hole_depth_va == "NA")
+  filter(!well_depth_va == "NA" | !hole_depth_va == "NA") %>% 
+  filter(!well_depth_va == 0.00) %>% 
+  filter(!lev_dt == "NA")
+
 
 # Attempts at if-else type filtering 
 
@@ -54,34 +59,92 @@ me_usgs_gw <- me %>%
 
 ```
 
-## Create experimental subset of data to try date constraint on 
+#--------------------------------------------------------------------------------------------------------
+## Create experimental subset of data to try date constraint on (just Alabama)
+#---------------------------------------------------------------------------------------------------------
 
 ```{r}
 # Only keep alabama 
-# Remove any values that do not have a well depth 
-# Remove any values that do not have a date associated 
 
 exp_sub <- me_usgs_gw %>% 
-  filter(state == "alabama") %>%
-  filter(!well_depth_va == "NA") %>% 
-  filter(!lev_dt == "NA")
+  filter(state == "alabama") 
   
 ```
 
 ```{r}
-# Confine by number of observations 
+# Determine min/max dates of wells (unique wells) 
+# Group by site_no and have minimum of 9 observations for each well 
+# use summarise to find min and max date 
 
-exp_sub_n <- exp_sub %>% 
+sub_minmax <- exp_sub %>% 
   group_by(site_no) %>% 
-  filter(n() > 29) 
+  filter(n() > 9) %>% 
+  summarise(
+    mindate = min(level_year), 
+    maxdate = max(level_year)
+  )
+
+# Constrain by a range of 20 years 
+
+sub_date <- sub_minmax %>% 
+  filter(maxdate - mindate >= 20)
 
 ```
 
 ```{r}
-# Now confine by date ranges
+# Make vector of unique site IDs that are constrained 
 
-exp_sub_date <- exp_sub %>% 
+constrained_wells <- sub_date %>% 
+  pull(site_no)
+
+# Use the resulting vector to filter target sites from original dataframe 
+
+final_alabama_wells <- exp_sub %>%
+  filter(site_no %in% c(constrained_wells))
+```
+
+#-------------------------------------------------------------------------------------------------------
+
+## Use above method on entire dataset 
+
+```{r}
+# Determine min/max dates of wells (unique wells) 
+# Group by site_no and have minimum of 9 observations for each well 
+# use summarise to find min and max date 
+
+me_minmax <- me_usgs_gw %>%
   group_by(site_no) %>% 
-  filter(level_year %in% c(1940:2019)) 
+  filter(n() > 9) %>% 
+  summarise(
+    mindate = min(level_year), 
+    maxdate = max(level_year)
+  )
+
+# Constrain by a range of 20 years 
+
+me_date <- me_minmax %>% 
+  filter(maxdate - mindate >= 20)
+
+# Make vector of unique site IDs that are constrained 
+
+constrained_me_wells <- me_date %>% 
+  pull(site_no)
+
+# Use the resulting vector to filter target sites from original dataframe 
+
+final_me_wells <- me_usgs_gw %>%
+  filter(site_no %in% c(constrained_me_wells))
+
+# Use just unique wells for location/ArcGIS purposes 
+
+unique_me_wells <- final_me_wells %>% 
+ distinct(site_no, .keep_all = TRUE) %>% 
+  select(site_no, dec_lat_va, dec_long_va) 
+
+unique_me_wells$site_no <- sub("^", "x", unique_me_wells$site_no)
+
+# Write to text file to then export to ArcGIS 
+
+write_tsv(unique_me_wells, here::here("me_data", "unique_me_wells.txt"))
 ```
 

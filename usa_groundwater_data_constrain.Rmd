@@ -35,7 +35,7 @@ entire_usa_gw <- readr::read_tsv("entire_usgs_usa.txt")
 # Constrain dataset by dates 
 #----------------------------------------------------------------------------------------------------------
 
-# Remove observations with NA values 
+# Remove date observations with NA values 
 
 entire_usa_gw_dates <- entire_usa_gw %>% 
   filter(!lev_dt == "NA")
