@@ -8,6 +8,31 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## Introduction 
+
+This Rmd document explores confined and unconfined aquifers in the Mississippi Embayment. Is there a difference between water levels over time in confined vs. unconfined aquifers? 
+
+## Obtaining Data 
+
+### USGS ME Geologic Data 
+
+USGS Mississippi Embayment (ME) geologic data was obtained through the following process: 
+
+- Main page: https://pubs.usgs.gov/sir/2008/5098/
+- Second page: https://pubs.usgs.gov/sir/2008/5098/downloads/
+- Download page: https://pubs.usgs.gov/sir/2008/5098/downloads/WRD_NSDI_Node.html
+  - Download "Hydrologic Model Layer Surfaces" **raster** file
+  
+### USGS ME Topography Data 
+
+USGS ME topography data was obtained through the following process: 
+
+- Main page: https://www.usgs.gov/core-science-systems/national-geospatial-program/national-map
+- Download and Selection page: https://viewer.nationalmap.gov/basic/?basemap=b1&category=ned,nedsrc&title=3DEP%20View
+  - Steps: 
+  - Create a box/narrow the view to your area of interest
+  - 
+
 
 ## Attach Packages and Data 
 
@@ -29,7 +54,9 @@ options(scipen=999)
 entire_usa_gw <- readr::read_tsv("entire_usgs_usa.txt")
 ```
 
-## Refine dataset for the Mississippi Embayment 
+## R Data Analysis 
+
+### Refine dataset for the Mississippi Embayment 
 
 ```{r}
 # Only keep well data for states in ME: 
@@ -59,9 +86,8 @@ me_usgs_gw <- me %>%
 
 ```
 
-#--------------------------------------------------------------------------------------------------------
-## Create experimental subset of data to try date constraint on (just Alabama)
-#---------------------------------------------------------------------------------------------------------
+
+### Create experimental subset of data to try date constraint on (just Alabama)
 
 ```{r}
 # Only keep alabama 
@@ -103,9 +129,8 @@ final_alabama_wells <- exp_sub %>%
   filter(site_no %in% c(constrained_wells))
 ```
 
-#-------------------------------------------------------------------------------------------------------
 
-## Use above method on entire dataset 
+### Use above method on entire dataset 
 
 ```{r}
 # Determine min/max dates of wells (unique wells) 
@@ -135,16 +160,60 @@ constrained_me_wells <- me_date %>%
 final_me_wells <- me_usgs_gw %>%
   filter(site_no %in% c(constrained_me_wells))
 
-# Use just unique wells for location/ArcGIS purposes 
+# Use just unique wells for location/ArcGIS purposes (added well and hole depth)
 
 unique_me_wells <- final_me_wells %>% 
  distinct(site_no, .keep_all = TRUE) %>% 
-  select(site_no, dec_lat_va, dec_long_va) 
+  select(site_no, dec_lat_va, dec_long_va, well_depth_va, hole_depth_va, alt_va) 
 
-unique_me_wells$site_no <- sub("^", "x", unique_me_wells$site_no)
+# Test for ArcGIS issue (adding area column)
+
+# unique_me_wells_2 <- final_me_wells %>% 
+#  distinct(site_no, .keep_all = TRUE) %>% 
+#   select(site_no, dec_lat_va, dec_long_va, well_depth_va, hole_depth_va) %>% 
+#   mutate(area = "5")
+
+# Add character value in front of site_no column as workaround for ArcGIS issue
+# unique_me_wells$site_no <- sub("^", "x", unique_me_wells$site_no)
 
 # Write to text file to then export to ArcGIS 
 
 write_tsv(unique_me_wells, here::here("me_data", "unique_me_wells.txt"))
+
+write_tsv(unique_me_wells, here::here("me_data", "unique_me_wells_2.txt"))
+```
+
+## ArcGIS Data Analysis 
+
+The following steps were performed in ArcGIS: 
+
+1. Import USGS ME geologic data (rasters) 
+2. Import USGS wells (text file from analysis above) 
+3. Use tool "Extract multi points to values" to determine well location intersection with geological raster layers 
+4. Create polygon to outline ME 
+5. Use "Intersect" tool to constrain wells to only fall within the ME 
+6. Export resulting well data (with intersection from step 3) as a text file 
+
+### Files from ArcGIS 
+
+After processing data in ArcGIS, import resulting text file back into R for further analysis 
+
+```{r}
+# Read in file from ArcGIS 
+
+me_wells_arc <- readr::read_csv(here::here("me_data", "mewellintersect.txt"))
+
+```
+
+```{r}
+# Basic data tidying 
+# clean names, remove extra columns, remove character from site ID column 
+
+me_wells_arc_tidy <- me_wells_arc %>% 
+  clean_names() %>% 
+  select(-objectid, -fid_wellsme, -fid_mepoly)
+
+me_wells_arc_tidy$site_no <- gsub("x", "", me_wells_arc_tidy$site_no)
+
 ```
 
