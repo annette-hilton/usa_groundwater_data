@@ -217,3 +217,39 @@ me_wells_arc_tidy$site_no <- gsub("x", "", me_wells_arc_tidy$site_no)
 
 ```
 
+Join result file from ArcGIS with original unique well file to have all information in one dataframe 
+
+```{r}
+# First change class of me_wells_arc_tidy column site_no to numeric 
+
+me_wells_arc_tidy$site_no <- as.numeric(me_wells_arc_tidy$site_no)
+
+# Use inner_join() to merge dataframes 
+
+arc_join_me <- unique_me_wells %>% 
+  inner_join(me_wells_arc_tidy, by = "site_no")
+
+# Tidy resulting dataframe 
+# Remove excess columns and reorder based on geologic unit order (depth)
+
+arc_join_me_tidy <- arc_join_me %>% 
+  select(-dec_lat_va.y, -dec_long_v, -lcaq_sur_1) %>% 
+  select(site_no, dec_lat_va.x, dec_long_va, well_depth_va, hole_depth_va, alt_va, vkbg_surf, ucaq_surf, mccu_surf, mcaq_surf, lccu_surf, lcaq_surf, mwaq_surf, lwaq_surf, mdwy_surf)
+
+
+```
+
+Start analysis of joined dataframe 
+
+```{r}
+# Add a column that is the average of well depth and hole depth 
+# Add a column that is elevation minus well depth
+
+me_analysis <- arc_join_me_tidy %>% 
+  mutate(avg_depth = (well_depth_va + hole_depth_va) / 2) %>% 
+  mutate(final_depth = alt_va - avg_depth)
+   
+  
+  # mutate(true_depth = alt_va - 
+```
+
