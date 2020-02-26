@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = FALSE)
 ```
 ## Introduction 
 
@@ -42,6 +42,8 @@ USGS ME topography data was obtained through the following process:
 library(tidyverse)
 library(here)
 library(janitor)
+library(naniar)
+library(plyr)
 
 # Disable scientific notation 
 
@@ -102,28 +104,28 @@ exp_sub <- me_usgs_gw %>%
 # Group by site_no and have minimum of 9 observations for each well 
 # use summarise to find min and max date 
 
-sub_minmax <- exp_sub %>% 
-  group_by(site_no) %>% 
-  filter(n() > 9) %>% 
-  summarise(
-    mindate = min(level_year), 
+sub_minmax <- exp_sub %>%
+  group_by(site_no) %>%
+  filter(n() > 9) %>%
+  dplyr::summarise(
+    mindate = min(level_year),
     maxdate = max(level_year)
   )
 
-# Constrain by a range of 20 years 
+# Constrain by a range of 20 years
 
-sub_date <- sub_minmax %>% 
+sub_date <- sub_minmax %>%
   filter(maxdate - mindate >= 20)
-
+#
 ```
 
 ```{r}
-# Make vector of unique site IDs that are constrained 
+# Make vector of unique site IDs that are constrained
 
-constrained_wells <- sub_date %>% 
+constrained_wells <- sub_date %>%
   pull(site_no)
 
-# Use the resulting vector to filter target sites from original dataframe 
+# Use the resulting vector to filter target sites from original dataframe
 
 final_alabama_wells <- exp_sub %>%
   filter(site_no %in% c(constrained_wells))
@@ -140,7 +142,7 @@ final_alabama_wells <- exp_sub %>%
 me_minmax <- me_usgs_gw %>%
   group_by(site_no) %>% 
   filter(n() > 9) %>% 
-  summarise(
+  dplyr::summarise(
     mindate = min(level_year), 
     maxdate = max(level_year)
   )
@@ -187,31 +189,54 @@ write_tsv(unique_me_wells, here::here("me_data", "unique_me_wells_2.txt"))
 
 The following steps were performed in ArcGIS: 
 
+Hydrogeological data: 
+Arcfile = "miss_embayment" 
+
 1. Import USGS ME geologic data (rasters) 
 2. Import USGS wells (text file from analysis above) 
-3. Use tool "Extract multi points to values" to determine well location intersection with geological raster layers 
+3. Use tool "Extract multi values to points" to determine well location intersection with geological raster layers 
 4. Create polygon to outline ME 
 5. Use "Intersect" tool to constrain wells to only fall within the ME 
 6. Export resulting well data (with intersection from step 3) as a text file 
 
-### Files from ArcGIS 
+Topography data: 
+Arcfile = "me_top_extract"
 
-After processing data in ArcGIS, import resulting text file back into R for further analysis 
+1. Repeat steps 4-5 above (use polygon and constrain wells only to ME)
+2. Use tool "Extract values to points" to determine well location intersection with topography rasters 
+  - Must use this tool as the multi-value tool did not work; therefore extract 59 individual files 
+3. Export resulting well data (59 individual files) as text files 
+
+### Hydrogeological data & Topography data 
+
+After processing in ArcGIS, import resulting text files (59 files) into R for further analysis 
 
 ```{r}
-# Read in file from ArcGIS 
+# Read in files from ArcGIS 
+# Create path of all 59 topography files 
 
-me_wells_arc <- readr::read_csv(here::here("me_data", "mewellintersect.txt"))
+topo_files = list.files(path = here::here("me_data", "topography"), pattern = "*.txt", full.names = TRUE)
+
+topo_files
+
+# Read in all topography files into one dataframe 
+topo_all = ldply(topo_files, read_csv)
 
 ```
 
+
 ```{r}
 # Basic data tidying 
+# Create `na_strings` to indicate pesky NA values
 # clean names, remove extra columns, remove character from site ID column 
+# Replace NA numeric indicators with "NA" 
 
-me_wells_arc_tidy <- me_wells_arc %>% 
+na_strings <- c("-9999", "-9999.00", "-9999.000", "-9999.0000", "-9999.00000", "-9999.000000")
+
+me_wells_arc_tidy <- topo_all %>% 
   clean_names() %>% 
-  select(-objectid, -fid_wellsme, -fid_mepoly)
+  select(-objectid_12, -objectid_1, -fid_wellsm, -objectid, -fid_mepoly, -shape_leng) %>% 
+  replace_with_na_all(condition = ~.x %in% na_strings)
 
 me_wells_arc_tidy$site_no <- gsub("x", "", me_wells_arc_tidy$site_no)
 
@@ -234,7 +259,7 @@ arc_join_me <- unique_me_wells %>%
 
 arc_join_me_tidy <- arc_join_me %>% 
   select(-dec_lat_va.y, -dec_long_v, -lcaq_sur_1) %>% 
-  select(site_no, dec_lat_va.x, dec_long_va, well_depth_va, hole_depth_va, alt_va, vkbg_surf, ucaq_surf, mccu_surf, mcaq_surf, lccu_surf, lcaq_surf, mwaq_surf, lwaq_surf, mdwy_surf)
+  select(site_no, dec_lat_va.x, dec_long_va, well_depth_va, hole_depth_va, alt_va, vkbg_surf, ucaq_surf, mccu_surf, mcaq_surf, lccu_surf, lcaq_surf, mwaq_surf, lwaq_surf, mdwy_surf, rastervalu)
 
 
 ```
@@ -242,14 +267,19 @@ arc_join_me_tidy <- arc_join_me %>%
 Start analysis of joined dataframe 
 
 ```{r}
-# Add a column that is the average of well depth and hole depth 
+# Convert `rastervalu` column from meters to feet (conversion: 1 meter = 3.28084 feet)
 # Add a column that is elevation minus well depth
 
 me_analysis <- arc_join_me_tidy %>% 
-  mutate(avg_depth = (well_depth_va + hole_depth_va) / 2) %>% 
-  mutate(final_depth = alt_va - avg_depth)
-   
-  
-  # mutate(true_depth = alt_va - 
+  mutate(topo_ft = rastervalu * 3.28084) %>% 
+  mutate(well_bottom = topo_ft - well_depth_va)
+
+```
+
+```{r}
+
+# Test for finding boundaries (need to write a loop?)
+me_boundary <- me_analysis %>% 
+  between(me_boundary$final_depth, vkbg_surf, ucaq_surf)
 ```
 
