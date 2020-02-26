@@ -76,16 +76,6 @@ me_usgs_gw <- me %>%
   filter(!well_depth_va == 0.00) %>% 
   filter(!lev_dt == "NA")
 
-
-# Attempts at if-else type filtering 
-
-# me_usgs_gw <- me %>% 
-#   filter_at(vars(well_depth_va, hole_depth_va), all_vars(."NA"))
-#   
-#   filter(
-#     if (well_depth_va == "NA") 
-#       else hole_depth_va)
-
 ```
 
 
@@ -211,19 +201,18 @@ Arcfile = "me_top_extract"
 
 After processing in ArcGIS, import resulting text files (59 files) into R for further analysis 
 
-```{r}
+```{r,  = FALSE}
 # Read in files from ArcGIS 
 # Create path of all 59 topography files 
 
 topo_files = list.files(path = here::here("me_data", "topography"), pattern = "*.txt", full.names = TRUE)
-
-topo_files
 
 # Read in all topography files into one dataframe 
 topo_all = ldply(topo_files, read_csv)
 
 ```
 
+Tidy data 
 
 ```{r}
 # Basic data tidying 
@@ -264,7 +253,47 @@ arc_join_me_tidy <- arc_join_me %>%
 
 ```
 
-Start analysis of joined dataframe 
+### ME Aquifer Information 
+
+Hydrologic Model Layer Surfaces:
+
+- Vicksburg-Jackson Group (top) **(vkbg)**   
+- Upper Claiborne aquifer (top) **(ucaq)**
+- Middle Claiborne confining unit (top) **(mccu)**  
+- Middle Claiborne aquifer (top) **(mcaq)** 
+- Lower Claiborne confining unit (top) **(lccu)**  
+- Lower Claiborne aquifer (top) **(lcaq)** 
+- Middle Wilcox aquifer (top) **(mwaq)**
+- Lower Wilcox aquifer (top) **(lwaq)**
+- Midway confining unit (top) **(mdwy)** 
+
+Unit Range (ft): 
+
+- vkbg: 566 (-364) 
+- ucaq: 521 (-874)
+- mccu: 540 (-1461)
+- mcaq: 654 (-1659)
+- lccu: 614 (-2539)
+- lcaq: 616 (-3102)
+- mwaq: 632 (-3347)
+- lwaq: 555 (-2320)
+- mdwy: 553 (-6036)
+
+Confined vs Unconfined: 
+
+- vkbg: confined  
+- ucaq: unconfined
+- mccu: confined
+- mcaq: unconfined
+- lccu: confined
+- lcaq: unconfined
+- mwaq: unconfined
+- lwaq: unconfined
+- mdwy: confined 
+
+### Aquifer analysis 
+
+Begin analysis of joined dataframe (find well bottom)
 
 ```{r}
 # Convert `rastervalu` column from meters to feet (conversion: 1 meter = 3.28084 feet)
@@ -276,10 +305,243 @@ me_analysis <- arc_join_me_tidy %>%
 
 ```
 
-```{r}
+#### Determine aquifer for each well  
 
-# Test for finding boundaries (need to write a loop?)
-me_boundary <- me_analysis %>% 
-  between(me_boundary$final_depth, vkbg_surf, ucaq_surf)
+Process: 
+
+If well bottom is greater than second unit (top), then it falls within the first unit (second unit top is the bottom of the first unit). 
+
+well bottom > ucaq (second unit) = vkbg (first unit) 
+well bottom > mccu (third unit) = ucaq (second unit) 
+well bottom > mcaq (fourth unit) = mccu (third unit) 
+well bottom > lccu (fifth unit) = mcaq (fourth unit) 
+well bottom > lcaq (sixth unit) = lccu (fifth unit) 
+well bottom > mwaq (seventh unit) = lcaq (sixth unit) 
+well bottom > lwaq (eigth unit) = mwaq (seventh unit) 
+well bottom > mdwy (ninth unit) = lwaq (eigth unit) 
+well bottom < mdwy (ninth unit) = mdwy (ninth unit) 
+
+```{r}
+# Determine which aquifer well_bottom falls within using `case_when()` 
+
+me_aquifer <- me_analysis %>% 
+  mutate(
+    aquifer = case_when(
+      well_bottom > ucaq_surf ~"vkbg", 
+      well_bottom > mccu_surf ~"ucaq", 
+      well_bottom > mcaq_surf ~"mccu", 
+      well_bottom > lccu_surf ~"mcaq", 
+      well_bottom > lcaq_surf ~"lccu", 
+      well_bottom > mwaq_surf ~"lcaq", 
+      well_bottom > lwaq_surf ~"mwaq", 
+      well_bottom > mdwy_surf ~"lwaq", 
+      well_bottom < mdwy_surf ~"mdwy")) 
+```
+
+
+```{r}
+# Test for finding which aquifer well_bottom falls within using `ifelse()` 
+
+# Only partially worked, commented out
+
+# me_test <- me_analysis %>% 
+#   mutate(aquifer = ifelse(well_bottom > ucaq_surf, "vkbg", "NA"), 
+#          ifelse(well_bottom > mccu_surf, "ucaq", "NA"), 
+#          ifelse(well_bottom > mcaq_surf, "mccu", "NA"), 
+#          ifelse(well_bottom > lccu_surf, "mcaq", "NA"), 
+#          ifelse(well_bottom > lcaq_surf, "lccu", "NA"), 
+#          ifelse(well_bottom > mwaq_surf, "lcaq", "NA"), 
+#          ifelse(well_bottom > lwaq_surf, "mwaq", "NA"), 
+#          ifelse(well_bottom > mdwy_surf, "lwaq", "NA"), 
+#          ifelse(well_bottom < mdwy_surf, "mdwy", "NA"))
+
+
+```
+
+#### Separate each aquifer/unit and confined vs unconfined 
+
+Confined & Unconfined 
+
+```{r}
+# Confined aquifer units: vkbg, mccu, lccu, mdwy 
+
+confined <- me_aquifer %>% 
+  filter(aquifer %in% c("vkbg", "mccu", "lccu", "mdwy"))
+
+# Unconfined aquifer units: ucaq, mcaq, lcaq, mwaq, lwaq
+
+unconfined <- me_aquifer %>% 
+  filter(aquifer %in% c("ucaq", "mcaq", "lcaq", "mwaq", "lwaq"))
+```
+
+
+Each aquifer unit 
+
+```{r}
+# vkbg 
+vkbg <- me_aquifer %>% 
+  filter(aquifer == "vkbg")
+
+# ucaq
+ucaq <- me_aquifer %>% 
+  filter(aquifer == "ucaq")
+
+# mccu
+mccu <- me_aquifer %>% 
+  filter(aquifer == "mccu")
+
+# mcaq
+mcaq <- me_aquifer %>% 
+  filter(aquifer == "mcaq")
+
+# lccu
+lccu <- me_aquifer %>% 
+  filter(aquifer == "lccu")
+
+# lcaq
+lcaq <- me_aquifer %>% 
+  filter(aquifer == "lcaq")
+
+# mwaq
+mwaq <- me_aquifer %>% 
+  filter(aquifer == "mwaq")
+
+# lwaq
+lwaq <- me_aquifer %>% 
+  filter(aquifer == "lwaq")
+
+# mdwy
+mdwy <- me_aquifer %>% 
+  filter(aquifer == "mdwy")
+
+```
+
+#### Return all observations for wells back into dataframes 
+
+Create vector from wells with site ID only for each category (confined/unconfined; all units)
+
+```{r}
+# Create vector from wells with site ID only 
+
+# Confined 
+confined_vector <- confined %>% 
+  pull(site_no)
+
+# Unconfined 
+unconfined_vector <- unconfined %>% 
+  pull(site_no)
+
+# vkbg
+vkbg_vector <- vkbg %>% 
+  pull(site_no)
+
+# ucaq
+ucaq_vector <- ucaq %>% 
+  pull(site_no)
+
+# mccu
+mccu_vector <- mccu %>% 
+  pull(site_no)
+
+# mcaq
+mcaq_vector <- mcaq %>% 
+  pull(site_no)
+
+# lccu
+lccu_vector <- lccu %>% 
+  pull(site_no)
+
+# lcaq
+lcaq_vector <- lcaq %>% 
+  pull(site_no)
+
+# mwaq
+mwaq_vector <- mwaq %>% 
+  pull(site_no)
+
+# lwaq
+lwaq_vector <- lwaq %>% 
+  pull(site_no)
+
+# mdwy
+mdwy_vector <- mdwy %>% 
+  pull(site_no)
+  
+```
+
+Use vector to filter specific wells from larger dataframe of all ME wells & tidying 
+
+```{r}
+# Confined 
+confined_all <- me_usgs_gw %>%
+  filter(site_no %in% c(confined_vector)) %>% 
+  mutate(type = "confined")
+
+# Unconfined 
+unconfined_all <- me_usgs_gw %>%
+  filter(site_no %in% c(unconfined_vector)) %>% 
+  mutate(type = "unconfined")
+
+# vkbg
+vkbg_all <- me_usgs_gw %>%
+  filter(site_no %in% c(vkbg_vector)) %>% 
+  mutate(type = "confined") %>% 
+  mutate(unit = "vkbg")
+
+# ucaq
+ucaq_all <- me_usgs_gw %>%
+  filter(site_no %in% c(ucaq_vector)) %>% 
+  mutate(type = "unconfined") %>% 
+  mutate(unit = "ucaq")
+
+# mccu
+mccu_all <- me_usgs_gw %>%
+  filter(site_no %in% c(mccu_vector)) %>% 
+  mutate(type = "confined") %>% 
+  mutate(unit = "mccu")
+
+# mcaq
+mcaq_all <- me_usgs_gw %>%
+  filter(site_no %in% c(mcaq_vector)) %>% 
+  mutate(type = "unconfined") %>% 
+  mutate(unit = "mcaq")
+
+# lccu
+lccu_all <- me_usgs_gw %>%
+  filter(site_no %in% c(lccu_vector)) %>% 
+  mutate(type = "confined") %>% 
+  mutate(unit = "lccu")
+
+# lcaq
+lcaq_all <- me_usgs_gw %>%
+  filter(site_no %in% c(lcaq_vector)) %>% 
+  mutate(type = "unconfined") %>% 
+  mutate(unit = "lcaq")
+
+# mwaq
+mwaq_all <- me_usgs_gw %>%
+  filter(site_no %in% c(mwaq_vector)) %>% 
+  mutate(type = "unconfined") %>% 
+  mutate(unit = "mwaq")
+
+# lwaq
+lwaq_all <- me_usgs_gw %>%
+  filter(site_no %in% c(lwaq_vector)) %>% 
+  mutate(type = "unconfined") %>% 
+  mutate(unit = "lwaq")
+
+# mdwy
+mdwy_all <- me_usgs_gw %>%
+  filter(site_no %in% c(mdwy_vector)) %>% 
+  mutate(type = "confined") %>% 
+  mutate(unit = "mdwy")
+```
+
+Join all units for one giant dataframe 
+
+```{r}
+# Use `rbind()` to combine all units to one dataframe (combine vertically) 
+
+all_aquifers <- rbind(vkbg_all, ucaq_all, mccu_all, mcaq_all, lccu_all, lcaq_all, mwaq_all, lwaq_all, mdwy_all)
 ```
 

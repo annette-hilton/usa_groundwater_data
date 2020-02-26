@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
@@ -331,6 +330,7 @@ summary {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -369,64 +369,297 @@ summary {
 </div>
 
 
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This Rmd document explores confined and unconfined aquifers in the Mississippi Embayment. Is there a difference between water levels over time in confined vs. unconfined aquifers?</p>
+</div>
+<div id="obtaining-data" class="section level2">
+<h2>Obtaining Data</h2>
+<div id="usgs-me-geologic-data" class="section level3">
+<h3>USGS ME Geologic Data</h3>
+<p>USGS Mississippi Embayment (ME) geologic data was obtained through the following process:</p>
+<ul>
+<li>Main page: <a href="https://pubs.usgs.gov/sir/2008/5098/" class="uri">https://pubs.usgs.gov/sir/2008/5098/</a></li>
+<li>Second page: <a href="https://pubs.usgs.gov/sir/2008/5098/downloads/" class="uri">https://pubs.usgs.gov/sir/2008/5098/downloads/</a></li>
+<li>Download page: <a href="https://pubs.usgs.gov/sir/2008/5098/downloads/WRD_NSDI_Node.html" class="uri">https://pubs.usgs.gov/sir/2008/5098/downloads/WRD_NSDI_Node.html</a>
+<ul>
+<li>Download “Hydrologic Model Layer Surfaces” <strong>raster</strong> file</li>
+</ul></li>
+</ul>
+</div>
+<div id="usgs-me-topography-data" class="section level3">
+<h3>USGS ME Topography Data</h3>
+<p>USGS ME topography data was obtained through the following process:</p>
+<ul>
+<li>Main page: <a href="https://www.usgs.gov/core-science-systems/national-geospatial-program/national-map" class="uri">https://www.usgs.gov/core-science-systems/national-geospatial-program/national-map</a></li>
+<li>Download and Selection page: <a href="https://viewer.nationalmap.gov/basic/?basemap=b1&amp;category=ned,nedsrc&amp;title=3DEP%20View" class="uri">https://viewer.nationalmap.gov/basic/?basemap=b1&amp;category=ned,nedsrc&amp;title=3DEP%20View</a>
+<ul>
+<li>Steps:</li>
+<li>Create a box/narrow the view to your area of interest</li>
+<li></li>
+</ul></li>
+</ul>
+</div>
+</div>
 <div id="attach-packages-and-data" class="section level2">
 <h2>Attach Packages and Data</h2>
 <pre class="r"><code># Attach packages 
 
-library(tidyverse)</code></pre>
-<pre><code>## -- Attaching packages --------------------------------------------------------------- tidyverse 1.2.1 --</code></pre>
-<pre><code>## v ggplot2 3.2.1     v purrr   0.3.3
-## v tibble  2.1.3     v dplyr   0.8.3
-## v tidyr   1.0.0     v stringr 1.4.0
-## v readr   1.3.1     v forcats 0.4.0</code></pre>
-<pre><code>## -- Conflicts ------------------------------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>library(here)</code></pre>
-<pre><code>## here() starts at C:/Users/annette/Documents/github/usa_groundwater_data</code></pre>
-<pre class="r"><code>library(janitor)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;janitor&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     chisq.test, fisher.test</code></pre>
-<pre class="r"><code># Disable scientific notation 
+library(tidyverse)
+library(here)
+library(janitor)
+library(naniar)
+library(plyr)
+
+# Disable scientific notation 
 
 options(scipen=999)</code></pre>
 <pre class="r"><code># Read in the full dataset for all well water measurements for the USA 
 
 entire_usa_gw &lt;- readr::read_tsv(&quot;entire_usgs_usa.txt&quot;)</code></pre>
-<pre><code>## Parsed with column specification:
-## cols(
-##   site_no = col_double(),
-##   dec_lat_va = col_double(),
-##   dec_long_va = col_double(),
-##   dec_coord_datum_cd = col_character(),
-##   alt_va = col_double(),
-##   alt_acy_va = col_double(),
-##   alt_datum_cd = col_character(),
-##   well_depth_va = col_double(),
-##   hole_depth_va = col_double(),
-##   agency_cd.y = col_character(),
-##   site_tp_cd = col_character(),
-##   lev_dt = col_character(),
-##   lev_tz_cd = col_character(),
-##   lev_va = col_double(),
-##   state = col_character(),
-##   level_date = col_datetime(format = &quot;&quot;),
-##   level_decimal_date = col_double(),
-##   level_month = col_character(),
-##   level_year = col_double()
-## )</code></pre>
-<pre><code>## Warning: 8 parsing failures.
-##     row         col expected     actual                  file
-## 5193517 site_no     a double df_wyoming &#39;entire_usgs_usa.txt&#39;
-## 5193517 dec_lat_va  a double df_wyoming &#39;entire_usgs_usa.txt&#39;
-## 5193517 dec_long_va a double df_wyoming &#39;entire_usgs_usa.txt&#39;
-## 5193517 alt_va      a double df_wyoming &#39;entire_usgs_usa.txt&#39;
-## 5193517 alt_acy_va  a double df_wyoming &#39;entire_usgs_usa.txt&#39;
-## ....... ........... ........ .......... .....................
-## See problems(...) for more details.</code></pre>
+</div>
+<div id="r-data-analysis" class="section level2">
+<h2>R Data Analysis</h2>
+<div id="refine-dataset-for-the-mississippi-embayment" class="section level3">
+<h3>Refine dataset for the Mississippi Embayment</h3>
+<pre class="r"><code># Only keep well data for states in ME: 
+# Missouri, Illinois, Kentucky, Tennessee, Arkansas, Mississippi, Alabama, Louisiana
+
+me &lt;- entire_usa_gw %&gt;% 
+  filter(state %in% c(&quot;alabama&quot;, &quot;arkansas&quot;, &quot;illinois&quot;, &quot;kentucky&quot;, &quot;louisiana&quot;, &quot;missouri&quot;, &quot;mississippi&quot;, &quot;tennessee&quot;))
+
+# If-else statement to have either well_depth or hole_depth (OR) 
+# Remove well depths of 0
+# Remove wells that do not have a date associated with them 
+
+me_usgs_gw &lt;- me %&gt;% 
+  filter(!well_depth_va == &quot;NA&quot; | !hole_depth_va == &quot;NA&quot;) %&gt;% 
+  filter(!well_depth_va == 0.00) %&gt;% 
+  filter(!lev_dt == &quot;NA&quot;)</code></pre>
+</div>
+<div id="create-experimental-subset-of-data-to-try-date-constraint-on-just-alabama" class="section level3">
+<h3>Create experimental subset of data to try date constraint on (just Alabama)</h3>
+<pre class="r"><code># Only keep alabama 
+
+exp_sub &lt;- me_usgs_gw %&gt;% 
+  filter(state == &quot;alabama&quot;) </code></pre>
+<pre class="r"><code># Determine min/max dates of wells (unique wells) 
+# Group by site_no and have minimum of 9 observations for each well 
+# use summarise to find min and max date 
+
+sub_minmax &lt;- exp_sub %&gt;%
+  group_by(site_no) %&gt;%
+  filter(n() &gt; 9) %&gt;%
+  dplyr::summarise(
+    mindate = min(level_year),
+    maxdate = max(level_year)
+  )
+
+# Constrain by a range of 20 years
+
+sub_date &lt;- sub_minmax %&gt;%
+  filter(maxdate - mindate &gt;= 20)
+#</code></pre>
+<pre class="r"><code># Make vector of unique site IDs that are constrained
+
+constrained_wells &lt;- sub_date %&gt;%
+  pull(site_no)
+
+# Use the resulting vector to filter target sites from original dataframe
+
+final_alabama_wells &lt;- exp_sub %&gt;%
+  filter(site_no %in% c(constrained_wells))</code></pre>
+</div>
+<div id="use-above-method-on-entire-dataset" class="section level3">
+<h3>Use above method on entire dataset</h3>
+<pre class="r"><code># Determine min/max dates of wells (unique wells) 
+# Group by site_no and have minimum of 9 observations for each well 
+# use summarise to find min and max date 
+
+me_minmax &lt;- me_usgs_gw %&gt;%
+  group_by(site_no) %&gt;% 
+  filter(n() &gt; 9) %&gt;% 
+  dplyr::summarise(
+    mindate = min(level_year), 
+    maxdate = max(level_year)
+  )
+
+# Constrain by a range of 20 years 
+
+me_date &lt;- me_minmax %&gt;% 
+  filter(maxdate - mindate &gt;= 20)
+
+# Make vector of unique site IDs that are constrained 
+
+constrained_me_wells &lt;- me_date %&gt;% 
+  pull(site_no)
+
+# Use the resulting vector to filter target sites from original dataframe 
+
+final_me_wells &lt;- me_usgs_gw %&gt;%
+  filter(site_no %in% c(constrained_me_wells))
+
+# Use just unique wells for location/ArcGIS purposes (added well and hole depth)
+
+unique_me_wells &lt;- final_me_wells %&gt;% 
+ distinct(site_no, .keep_all = TRUE) %&gt;% 
+  select(site_no, dec_lat_va, dec_long_va, well_depth_va, hole_depth_va, alt_va) 
+
+# Test for ArcGIS issue (adding area column)
+
+# unique_me_wells_2 &lt;- final_me_wells %&gt;% 
+#  distinct(site_no, .keep_all = TRUE) %&gt;% 
+#   select(site_no, dec_lat_va, dec_long_va, well_depth_va, hole_depth_va) %&gt;% 
+#   mutate(area = &quot;5&quot;)
+
+# Add character value in front of site_no column as workaround for ArcGIS issue
+# unique_me_wells$site_no &lt;- sub(&quot;^&quot;, &quot;x&quot;, unique_me_wells$site_no)
+
+# Write to text file to then export to ArcGIS 
+
+write_tsv(unique_me_wells, here::here(&quot;me_data&quot;, &quot;unique_me_wells.txt&quot;))
+
+write_tsv(unique_me_wells, here::here(&quot;me_data&quot;, &quot;unique_me_wells_2.txt&quot;))</code></pre>
+</div>
+</div>
+<div id="arcgis-data-analysis" class="section level2">
+<h2>ArcGIS Data Analysis</h2>
+<p>The following steps were performed in ArcGIS:</p>
+<p>Hydrogeological data: Arcfile = “miss_embayment”</p>
+<ol style="list-style-type: decimal">
+<li>Import USGS ME geologic data (rasters)</li>
+<li>Import USGS wells (text file from analysis above)</li>
+<li>Use tool “Extract multi values to points” to determine well location intersection with geological raster layers</li>
+<li>Create polygon to outline ME</li>
+<li>Use “Intersect” tool to constrain wells to only fall within the ME</li>
+<li>Export resulting well data (with intersection from step 3) as a text file</li>
+</ol>
+<p>Topography data: Arcfile = “me_top_extract”</p>
+<ol style="list-style-type: decimal">
+<li>Repeat steps 4-5 above (use polygon and constrain wells only to ME)</li>
+<li>Use tool “Extract values to points” to determine well location intersection with topography rasters</li>
+</ol>
+<ul>
+<li>Must use this tool as the multi-value tool did not work; therefore extract 59 individual files</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Export resulting well data (59 individual files) as text files</li>
+</ol>
+<div id="hydrogeological-data-topography-data" class="section level3">
+<h3>Hydrogeological data &amp; Topography data</h3>
+<p>After processing in ArcGIS, import resulting text files (59 files) into R for further analysis</p>
+<pre class="r"><code># Read in files from ArcGIS 
+# Create path of all 59 topography files 
+
+topo_files = list.files(path = here::here(&quot;me_data&quot;, &quot;topography&quot;), pattern = &quot;*.txt&quot;, full.names = TRUE)
+
+topo_files</code></pre>
+<pre><code>##  [1] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top 9.txt&quot;
+##  [2] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top1.txt&quot; 
+##  [3] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top10.txt&quot;
+##  [4] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top11.txt&quot;
+##  [5] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top12.txt&quot;
+##  [6] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top13.txt&quot;
+##  [7] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top14.txt&quot;
+##  [8] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top15.txt&quot;
+##  [9] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top16.txt&quot;
+## [10] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top17.txt&quot;
+## [11] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top18.txt&quot;
+## [12] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top19.txt&quot;
+## [13] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top2.txt&quot; 
+## [14] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top20.txt&quot;
+## [15] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top21.txt&quot;
+## [16] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top22.txt&quot;
+## [17] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top23.txt&quot;
+## [18] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top24.txt&quot;
+## [19] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top25.txt&quot;
+## [20] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top26.txt&quot;
+## [21] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top27.txt&quot;
+## [22] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top28.txt&quot;
+## [23] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top29.txt&quot;
+## [24] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top3.txt&quot; 
+## [25] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top30.txt&quot;
+## [26] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top31.txt&quot;
+## [27] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top32.txt&quot;
+## [28] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top33.txt&quot;
+## [29] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top34.txt&quot;
+## [30] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top35.txt&quot;
+## [31] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top36.txt&quot;
+## [32] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top37.txt&quot;
+## [33] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top38.txt&quot;
+## [34] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top39.txt&quot;
+## [35] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top4.txt&quot; 
+## [36] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top5.txt&quot; 
+## [37] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top6.txt&quot; 
+## [38] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top7.txt&quot; 
+## [39] &quot;C:/Users/annette/Documents/github/usa_groundwater_data/me_data/topography/top8.txt&quot;</code></pre>
+<pre class="r"><code># Read in all topography files into one dataframe 
+topo_all = ldply(topo_files, read_csv)</code></pre>
+<pre class="r"><code># Basic data tidying 
+# Create `na_strings` to indicate pesky NA values
+# clean names, remove extra columns, remove character from site ID column 
+# Replace NA numeric indicators with &quot;NA&quot; 
+
+na_strings &lt;- c(&quot;-9999&quot;, &quot;-9999.00&quot;, &quot;-9999.000&quot;, &quot;-9999.0000&quot;, &quot;-9999.00000&quot;, &quot;-9999.000000&quot;)
+
+me_wells_arc_tidy &lt;- topo_all %&gt;% 
+  clean_names() %&gt;% 
+  select(-objectid_12, -objectid_1, -fid_wellsm, -objectid, -fid_mepoly, -shape_leng) %&gt;% 
+  replace_with_na_all(condition = ~.x %in% na_strings)
+
+me_wells_arc_tidy$site_no &lt;- gsub(&quot;x&quot;, &quot;&quot;, me_wells_arc_tidy$site_no)</code></pre>
+<p>Join result file from ArcGIS with original unique well file to have all information in one dataframe</p>
+<pre class="r"><code># First change class of me_wells_arc_tidy column site_no to numeric 
+
+me_wells_arc_tidy$site_no &lt;- as.numeric(me_wells_arc_tidy$site_no)
+
+# Use inner_join() to merge dataframes 
+
+arc_join_me &lt;- unique_me_wells %&gt;% 
+  inner_join(me_wells_arc_tidy, by = &quot;site_no&quot;)
+
+# Tidy resulting dataframe 
+# Remove excess columns and reorder based on geologic unit order (depth)
+
+arc_join_me_tidy &lt;- arc_join_me %&gt;% 
+  select(-dec_lat_va.y, -dec_long_v, -lcaq_sur_1) %&gt;% 
+  select(site_no, dec_lat_va.x, dec_long_va, well_depth_va, hole_depth_va, alt_va, vkbg_surf, ucaq_surf, mccu_surf, mcaq_surf, lccu_surf, lcaq_surf, mwaq_surf, lwaq_surf, mdwy_surf, rastervalu)</code></pre>
+<p>Start analysis of joined dataframe</p>
+<pre class="r"><code># Convert `rastervalu` column from meters to feet (conversion: 1 meter = 3.28084 feet)
+# Add a column that is elevation minus well depth
+
+me_analysis &lt;- arc_join_me_tidy %&gt;% 
+  mutate(topo_ft = rastervalu * 3.28084) %&gt;% 
+  mutate(well_bottom = topo_ft - well_depth_va)</code></pre>
+<pre class="r"><code># Determine which aquifer well_bottom falls within using `case_when()` 
+
+me_aquifer &lt;- me_analysis %&gt;% 
+  mutate(
+    aquifer = case_when(
+      well_bottom &gt; ucaq_surf ~&quot;vkbg&quot;, 
+      well_bottom &gt; mccu_surf ~&quot;ucaq&quot;, 
+      well_bottom &gt; mcaq_surf ~&quot;mccu&quot;, 
+      well_bottom &gt; lccu_surf ~&quot;mcaq&quot;, 
+      well_bottom &gt; lcaq_surf ~&quot;lccu&quot;, 
+      well_bottom &gt; mwaq_surf ~&quot;lcaq&quot;, 
+      well_bottom &gt; lwaq_surf ~&quot;mwaq&quot;, 
+      well_bottom &gt; mdwy_surf ~&quot;lwaq&quot;, 
+      well_bottom &lt; mdwy_surf ~&quot;mdwy&quot;)) </code></pre>
+<pre class="r"><code># Test for finding which aquifer well_bottom falls within using `ifelse()` 
+
+# Only partially worked, commented out
+
+# me_test &lt;- me_analysis %&gt;% 
+#   mutate(aquifer = ifelse(well_bottom &gt; ucaq_surf, &quot;vkbg&quot;, &quot;NA&quot;), 
+#          ifelse(well_bottom &gt; mccu_surf, &quot;ucaq&quot;, &quot;NA&quot;), 
+#          ifelse(well_bottom &gt; mcaq_surf, &quot;mccu&quot;, &quot;NA&quot;), 
+#          ifelse(well_bottom &gt; lccu_surf, &quot;mcaq&quot;, &quot;NA&quot;), 
+#          ifelse(well_bottom &gt; lcaq_surf, &quot;lccu&quot;, &quot;NA&quot;), 
+#          ifelse(well_bottom &gt; mwaq_surf, &quot;lcaq&quot;, &quot;NA&quot;), 
+#          ifelse(well_bottom &gt; lwaq_surf, &quot;mwaq&quot;, &quot;NA&quot;), 
+#          ifelse(well_bottom &gt; mdwy_surf, &quot;lwaq&quot;, &quot;NA&quot;), 
+#          ifelse(well_bottom &lt; mdwy_surf, &quot;mdwy&quot;, &quot;NA&quot;))</code></pre>
+</div>
 </div>
 
 
