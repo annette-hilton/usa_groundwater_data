@@ -47,17 +47,15 @@ We are seeking the following parameters:
 
 ### Constraints of data 
 
-We are specifically seeking both historical and continuous groundwater data to provide us with information about how the water level changed over time. 
+We are specifically seeking both historical groundwater data to provide us with information about how the water level changed over time. 
 
 For each data type we plan to constrain our compilation by the following factors: 
 
 **Historical data**
 
 - Data from historical wells with only one measurement (well depth when drilled) will be excluded 
+- Data from historical wells without a date associated will be excluded 
 
-**Continuous data** 
-
-- Any continuous data measurements that have more than one measurement per day will be averaged to obtain the mean well water depth for the entire day 
 
 ### Data sources 
 
@@ -73,7 +71,6 @@ USGS data has been obtained through two different download portals:
 - National Water Information System: Web Interface
   - https://waterdata.usgs.gov/al/nwis/inventory
   
-Citation: **please add citation here**
 
 #### How to download data 
 
@@ -95,6 +92,7 @@ Generated URL Section
 
 - Click "Generate the URL" 
 - Click "Run the Generated URL" 
+- Save results as a text file 
 
 ##### **National Water Information System: Web Interface** 
 
@@ -116,6 +114,7 @@ Generated URL Section
   - Well depth 
   - Hole depth 
 - Click "Submit" 
+- Save results as a text file
 
 
 **Minnesota exception**
@@ -193,7 +192,7 @@ Part 1. Data download
 
 1. Two data sets for each state were obtained using the data sources listed above with the above criteria 
 2. Raw text files from each data source are saved directly from the web browser (avoiding copy/paste potential errors). The two files are saved as:
-  - "State_Raw_Date", where the State is the state name and the date is the date the data was obtained (ex. "California_Raw_11_08_19") 
+  - "State_Raw_Date", where `State` is the state name and `Date` is the date the data was obtained (ex. "California_Raw_11_08_19") 
   - "State_Raw_Other_Date" 
   
 ** Note, do not use google chrome web browser to download USGS data, it is not a compatible browser
@@ -201,11 +200,11 @@ Part 1. Data download
 
 Part 2. Data preparation to be imported into RStudio 
 
-1. The two raw text files for each state are copied
+1. The two raw text files for each state are copied (keep the original raw data file for archival purposes)
 2. The copied files are renamed: 
-  - "state_raw_import"
-  - "state_raw_other_import" 
-3. The files are opened and the metadata information prior to the collection data is manually removed for ease of import into RStudio 
+  - "state_raw_import" (where `state` is the state name)
+  - "state_raw_other_import" (where `state` is the state name)
+3. The files are opened and the metadata information prior to the collection data is manually removed for ease of import into RStudio (be sure to manually delete the metadata information from the text file before attempting to import into R)
 
 Part 3. Data import and wrangling in RStudio 
 
