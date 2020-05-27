@@ -63,6 +63,8 @@ For each data type we plan to constrain our compilation by the following factors
 
 #### USGS
 
+All USGS Groundwater Well Records were obtained during the month of November, 2019. 
+
 USGS data has been obtained through two different download portals:
 
 - USGS Groundwater Levels REST Web Service URL Generation Tool
