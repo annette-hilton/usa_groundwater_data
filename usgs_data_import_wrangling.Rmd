@@ -250,38 +250,3 @@ write_tsv(lat_long_entire_usa, here::here("lat_long_data", "lat_long_entire_usa.
   
 ```
 
-### Use anti_join() to identify new sites from 2018 to 2019 --COMMENTED OUT FOR NOW 
-
-```{r}
-# #---------------------------------------------------------------------------------------------------------
-# # New sites from 2018 to 2019 
-# #---------------------------------------------------------------------------------------------------------
-# 
-# # Attempt equivalent of v-lookup in R (anti-join)
-# # Read in 2018 USGS Data (from Scott Jasechko) 
-# 
-# usgs_2018 <- readr::read_tsv(here::here("lat_long_data", "usgs_2018_data.txt"))
-# 
-# # Use anti-join to find non-matches from the new usgs 2019 data and the usgs 2018 data (new sites) 
-# 
-# # First dataframe: "usgs_2018" 
-# # Second dataframe: "lat_long_entire_usa_s"
-# 
-# new_usgs_sites <- anti_join(lat_long_entire_usa_s, usgs_2018, by = "site_no")
-# 
-# # Returns dataframe with 640,937 new sites 
-# 
-# # Write resulting dataframe to tsv file 
-# 
-# write_tsv(new_usgs_sites, here::here("lat_long_data", "new_usgs_sites.txt"))
-
-
-```
-
-```{r}
-# # Attempt v-look up but with entire database (not distinct) 
-# 
-# new_usgs_sites_all <- anti_join(entire_usgs_usa, usgs_2018, by = "site_no") %>% 
-#   filter(!lev_dt == "NA")
-```
-
