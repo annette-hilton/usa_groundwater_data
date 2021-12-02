@@ -1,0 +1,211 @@
+---
+title: "USA Well Water Data"
+author: "Annette Hilton"
+date: "10/31/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE}
+
+# Attach packages 
+
+library(tidyverse)
+library(kableExtra)
+
+```
+
+
+## Goals and Objectives for the project 
+
+Here we attempt to compile existing groundwater data in the United States of America across all 50 states. 
+We will begin by obtaining and compiling all available USGS groundwater data. We will then map well locations to identify where data exists and where data is scarce. 
+We will prioritize states and locations with little data to investigate if other groundwater data exists and if so, how to obtain it. 
+We will process and clean all of the data to ensure that it is in a consistent and computationally friendly format. 
+After we have obtained as much groundwater data as reasonably possible and converted it into a consistent format, we hope to have a large dataset in which we can begin to explore trends in groundwater. 
+
+### Specific parameters 
+
+We are seeking the following parameters: 
+
+**General Well Information** 
+
+- Location of well (latitude, longitude in decimal degrees)
+- Well identifier 
+- Well depth 
+- Hole depth 
+- Altitude/Elevation of well 
+
+**Information Specific to Measurements** 
+
+- Date of measurement (decimal year)
+- Well water depth at date of measurement 
+
+
+### Constraints of data 
+
+We are specifically seeking both historical groundwater data to provide us with information about how the water level changed over time. 
+
+For each data type we plan to constrain our compilation by the following factors: 
+
+**Historical data**
+
+- Data from historical wells with only one measurement (well depth when drilled) will be excluded 
+- Data from historical wells without a date associated will be excluded 
+
+
+### Data sources 
+
+#### USGS
+
+All USGS Groundwater Well Records were obtained during the month of November, 2019. 
+
+USGS data has been obtained through two different download portals:
+
+- USGS Groundwater Levels REST Web Service URL Generation Tool
+  - https://waterservices.usgs.gov/rest/GW-Levels-Test-Tool.html
+  
+- National Water Information System: Web Interface
+  - https://nwis.waterdata.usgs.gov/nwis/si
+  **Make sure you are on the Groundwater Data for the Nation Site Information webpage (not just groundwater), and then search by individual state (otherwise you will not get full data) 
+  
+
+#### How to download data 
+
+##### **USGS Groundwater Levels REST Web Service URL Generation Tool** 
+
+Required Arguments Section 
+
+- Major Filters: "State of Territory" 
+- State or Territory: Select state of interest 
+
+Optional Arguments Section 
+
+- Output Format: "USGS RDB (tab-delimited)" 
+- Date Range: "Return all values within an absolute date range (start and end dates)" 
+- Start Date: "1800-01-01" 
+- Groundwater Site Types: "Well" 
+
+Generated URL Section 
+
+- Click "Generate the URL" 
+- Click "Run the Generated URL" 
+- Save results as a text file 
+
+##### **National Water Information System: Web Interface** 
+
+- Select Geographic Area: Select state of interest
+- Site Attribute: "Site type" 
+- Click "Submit" 
+
+(Next page)
+
+- Site type: "Well" 
+- Choose Output format: "Site-description information displayed in tab separated format 
+- Select Fields to include in site-description output: 
+  - Agency
+  - Site identification number
+  - Site name 
+  - Decimal latitude 
+  - Decimal longitude 
+  - Altitude of Gage/land surface
+  - Well depth 
+  - Hole depth 
+- Click "Submit" 
+- Save results as a text file
+
+
+**Minnesota exception**
+Please note that because Minnesota has so many well sites, they cannot be downloaded all at once. In order to obtain all wells (and not an incorrect subset of the wells) the following parameters were applied instead: 
+
+First attempt: (total n = 121905, distinct = 121897)
+
+- Select Geographic Area: Select state of interest
+- Site Attribute: "Well depth" 
+- Click "Submit" 
+
+(Next page)
+
+- Well depth: 
+  - Greater than (blank) and less than (blank)
+  - For Minnesota (two queries to obtain all results possible): 
+  - Greater than (0) and less than (75 m) 
+    - Yields n = 36107
+  - Greater than (74.5 m) and less than (blank) 
+    - Yields n = 85798
+
+**Issue with method 1:** The issue with method 1 is that not all wells are recorded as having a well depth, therefore searching by well depth does not yield all possible results. 
+  
+Second attempt: (total n = 129878, distinct = 127737)
+
+- Select Geographic Area: Select state of interest
+- Site Attribute: "Lat/long box" 
+- Click "Submit" 
+
+(Next page) 
+
+- Lat/Long box: 
+  - North: 50.000
+  - South: 43.000
+  - West: -95.000 
+  - East: -88.000 
+  - n = 90868
+  
+- Lat/Long box: 
+  - North: 50.000
+  - South: 43.000
+  - West: -101.000
+  - East: -94.900
+  - n = 39010
+
+**Issue with method 2:** We cannot filter specifically for well sites. Searching with lat/long values will yield all sites, regardless of type, within the lat/long range. Additional risk of overlap between lat/long values or missing values. 
+  
+Third attempt: (total n = 127582)
+
+- Select Geographic Area: Select state of interest
+- Site Attribute: "County" 
+- Click "Submit" 
+
+(Next page)
+
+- County: A-H (n = 58866)
+- County: L-Z (n = 68716)
+
+
+**Issue with method 3:** We cannot filter specifically for well sites. Searching with county will yield all sites within that county. However, there is no risk of missing a site. All sites were returned in full (n = 127582) as reported on Minnesota's web portal.
+
+**Minnesota solution:**
+
+The finalized solution for Minnesota is to utilize method 3 to obtain all values (127582), then select based on GW sites only (n = 123784), then feed this resulting dataframe into the loop to be merged, tidied, etc.
+
+We have performed due diligence to ensure all sites are captured. 
+
+#### Data Management Process 
+
+1. Data download 
+2. Data preparation to be imported into RStudio 
+3. Data import and wrangling in RStudio 
+
+Part 1. Data download 
+
+1. Two data sets for each state were obtained using the data sources listed above with the above criteria 
+2. Raw text files from each data source are saved directly from the web browser (avoiding copy/paste potential errors). The two files are saved as:
+  - "State_Raw_Date", where `State` is the state name and `Date` is the date the data was obtained (ex. "California_Raw_11_08_19") 
+  - "State_Raw_Other_Date" 
+  
+** Note, do not use google chrome web browser to download USGS data, it is not a compatible browser
+
+
+Part 2. Data preparation to be imported into RStudio 
+
+1. The two raw text files for each state are copied (keep the original raw data file for archival purposes)
+2. The copied files are renamed: 
+  - "state_raw_import" (where `state` is the state name)
+  - "state_raw_other_import" (where `state` is the state name)
+3. The files are opened and the metadata information prior to the collection data is manually removed for ease of import into RStudio (be sure to manually delete the metadata information from the text file before attempting to import into R)
+
+Part 3. Data import and wrangling in RStudio 
+

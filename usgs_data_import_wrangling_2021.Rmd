@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, error = FALSE, warning = FAL
 
 ## Introduction
 
-This document is complimentary to "USA Well Water Data." Please reference "USA Well Water Data" for more information regarding the goals and parameters of the project.
+This document is complimentary to "USA Well Water Data" (`usa_groundwater_metadata.Rmd`). Please reference "USA Well Water Data" for more information regarding the goals and parameters of the project.
 
 Here USGS groundwater data is auto-downloaded from the internet (urls) and tidied.  
 
@@ -19,27 +19,21 @@ Here USGS groundwater data is auto-downloaded from the internet (urls) and tidie
 
 1. Auto-download USGS groundwater well data from two different websites 
   a. USGS REST Services (https://waterservices.usgs.gov/rest/GW-Levels-Test-Tool.html)
-  b. USGS Groundwater Levels for the Nation, Historical Observations (https://nwis.waterdata.usgs.gov/nwis/gwlevels?search_criteria=state_cd&submitted_form=introduction) 
+  b. USGS Groundwater Levels for the Nation, Historical Observations (https://nwis.waterdata.usgs.gov/nwis/si) 
     **Note: this page is being depreciated Jan, 2023 
     
 2. Read in files 
-3. Tidy files 
-4. Create one large data set 
-
+3. Create one large data set, tidy data
+  
   
 ## Github/Rproject Set Up 
 
 If you have forked and cloned this repo from Github, you must set up your workspace in the following way to ensure the code runs properly (or edit the code as you see fit). 
 
-- **Naming convention** for the two USGS files (referenced in "usa_groundwater_supplementary_info.Rmd")
-  - Use the list `state` on line ____ of this Rmd ("# Create a vector with all the state names") to name the states (lowercase, no spaces, and spelling must match exactly) 
-    - "state_raw_import" (where `state` is the state name)
-    - "state_raw_other_import" (where `state` is the state name)
-
 - **Folders/File paths** in your Rproject must match the code. Create folders: 
-  - "raw_data" : place the two state files (for each state/territory used) in this folder; the R code will look for the raw data files in this folder 
-  - "merged_state_data_csv" : empty folder that the R code will write the resulting data files into 
-  - "merged_state_data_tsv" : empty folder that the R code will write the resulting data files into
+  - "urls": contains folders "usgs_rest" and "usgs_gwn" 
+  - "usgs_rest" : empty folder that the R code will write the resulting data files into from USGS REST 
+  - "usgs_gwn" : empty folder that the R code will write the resulting data files into from USGS Groundwater for the Nation 
 
 
 ```{r}
@@ -62,7 +56,7 @@ options(scipen=999)
 ```
 
 
-### Autodownload Data Files USGS 
+### Step 1. Autodownload Data Files USGS 
 
 Steps: 
 
@@ -74,18 +68,20 @@ Steps:
 1. State Abbreviations for both Data Downloads 
 
 ```{r}
-# Make list of state abbreviations 
+# Make list of state (and territory) abbreviations 
 
-states <- c("al", "ak", "az", "ar", "ca", "co", "ct", "de", "dc", "fl", "ga", "gu", "hi", "id", "il", "in", "ia", "ks", "ky", "la", "me", "md", "ma", "mi", "mn", "ms", "mo", "mt", "ne", "nv", "nh", "nj", "nm", "ny", "nc", "nd", "oh", "ok", "or", "pa", "pr", "ri", "sc", "sd", "tn", "tx", "ut", "vt", "vi", "va", "wa", "wv", "wi", "wy")
+states <- c("ak", "al", "ar", "az", "ca", "co", "ct", "dc", "de", "fl", "ga", "gu", "hi", "ia", "id", "il", "in", "ks", "ky", "la", "ma", "md", "me", "mi", "mn", "mo", "ms", "mt", "nc", "nd", "ne", "nh", "nj", "nm", "nv", "ny", "oh", "ok", "or", "pa", "pr", "ri", "sc", "sd", "tn", "tx", "ut", "va", "vi", "vt", "wa", "wi", "wv",  "wy")
 
 ```
   
 2. USGS REST Services Data Download 
 
+You must update this URL by date (most recent date)
+
 ```{r}
 # Designate URL to search for (USGS REST Services), with {state} added to iterate through state abbreviations/different URLS 
 
-url_usgs_rest <- glue("https://waterservices.usgs.gov/nwis/gwlevels/?format=rdb&stateCd={states}&startDT=1800-01-01&endDT=2021-11-30&siteType=GW&siteStatus=all")
+url_usgs_rest <- glue("https://waterservices.usgs.gov/nwis/gwlevels/?format=rdb&stateCd={states}&startDT=1800-01-01&endDT=2021-12-01&siteType=GW&siteStatus=all")
 
 # Designate a place for downloaded files to live (create folder, and designate name for files once downloaded)
 
@@ -99,10 +95,12 @@ walk2(url_usgs_rest, names_usgs_rest, curl_download, mode = "wb")
  
 3. USGS Groundwater for the Nation Data Download 
 
+URL should not need to be updated 
+
 ```{r}
 # Designate URL to search for (USGS Groundwater for the Nation), with {state} added to iterate through state abbreviations/different URLS 
 
-url_usgs_gwn <- glue("https://nwis.waterdata.usgs.gov/nwis/gwlevels?state_cd={states}&group_key=NONE&format=sitefile_output&sitefile_output_format=rdb&column_name=agency_cd&column_name=site_no&column_name=station_nm&column_name=dec_lat_va&column_name=dec_long_va&column_name=alt_va&column_name=nat_aqfr_cd&column_name=well_depth_va&column_name=hole_depth_va&date_format=YYYY-MM-DD&rdb_compression=file&list_of_search_criteria=state_cd")
+url_usgs_gwn <- glue("https://nwis.waterdata.usgs.gov/{states}/nwis/inventory?site_tp_cd=GW&group_key=NONE&format=sitefile_output&sitefile_output_format=rdb&column_name=agency_cd&column_name=site_no&column_name=station_nm&column_name=dec_lat_va&column_name=dec_long_va&column_name=state_cd&column_name=alt_va&column_name=well_depth_va&column_name=hole_depth_va&list_of_search_criteria=site_tp_cd")
 
 # Designate a place for downloaded files to live (create folder, and designate name for files once downloaded)
 
@@ -113,57 +111,51 @@ names_usgs_gwn <- here::here("urls", "usgs_gwn", glue("usgs_gwn_{states}.tsv"))
 walk2(url_usgs_gwn, names_usgs_gwn, curl_download, mode = "wb")
 ```
 
-4. Read in Files 
+### Step 2. Read in Files 
 
 ```{r}
-usgs_rest_all <-
-    list.files(path = here::here("urls", "usgs_rest"),
-               pattern = "*.tsv", full.names = T) %>% 
-    map_df(~fread(., skip = "agency_cd", header = TRUE)) 
+# Read in USGS REST files just downloaded
+# Use `read.table()` for reading in files, use `map_df()` to make it iterative 
+# Specify `header = TRUE` to indicate first row should be column headers 
+  
+usgs_rest_all <- 
+  list.files(path = here::here("urls", "usgs_rest"), 
+             pattern = "*.tsv", full.names = T) %>% 
+  map_df(~read.table(., fill = TRUE, header = TRUE), .id = "source") %>% 
+  filter(!agency_cd == "5s")
 
+
+# Read in USGS Groundwater for the Nation files just downloaded
+# Use `fread()` for reading in files, use `map_df()` to make it iterative
+# Specify `header = TRUE` to indicate first row should be column headers
 
 usgs_gwn_all <-
     list.files(path = here::here("urls", "usgs_gwn"),
                pattern = "*.tsv", full.names = T) %>% 
-    map_df(~fread(., skip = "agency_cd", header = TRUE))
+    map_df(~fread(., header = TRUE), .id = "source") %>% 
+             filter(!agency_cd == "5s")
 
 ```
 
-5. Join files and tidy 
+### Step 3. Join files and tidy 
 
 ```{r}
-full_join_usgs <- full_join(x = usgs_gwn_all, y = usgs_rest_all, by = "site_no", copy = FALSE) 
-```
+# Use full join to merge both data sets (by site_no) 
 
+full_join_usgs <- full_join(x = usgs_gwn_all, y = usgs_rest_all, by = "site_no") 
 
+# Tidy dataframe: add dates (lubridate) 
 
-
-### Merge all dataframes to final dataframe 
-
-```{r}
-#-----------------------------------------------------------------------------------------------------
-# Merge all 53 states/territories into one dataframe 
-#-----------------------------------------------------------------------------------------------------
-
-# Create list of dataframes for rbind function (all 53 states/territories)
-
-merge_list <- mget(ls(pattern = "df_"))
-
-# Use the do.call function and rbind to merge all of the dataframes from the list vertically (since variables are the same) 
-# Use mutate and lubridate to add columns for date, decimal date, month, and year 
-
-entire_usgs_usa <- do.call("rbind", merge_list) %>% 
-   mutate(
-    level_date = lubridate::parse_date_time(lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE),
+entire_usa_2021 <- full_join_usgs %>% 
+  mutate(
+    level_date = lubridate::parse_date_time(lev_dt, orders = c("ymd", "Y!", "Ym"), train = FALSE), 
     level_decimal_date = lubridate::decimal_date(level_date),
     level_month = lubridate::month(level_date, label = TRUE),
     level_year = lubridate::year(level_date))
-entire_usgs_usa$site_no <- as.numeric(entire_usgs_usa$site_no)
+  
+```
 
-# Write dataframe to tsv
-
-# write_tsv(entire_usgs_usa, "entire_usgs_usa.txt")
- 
-
+```{r}
+exp <- readr::read_tsv("entire_usgs_usa.txt")
 ```
 
