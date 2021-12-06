@@ -117,23 +117,32 @@ walk2(url_usgs_gwn, names_usgs_gwn, curl_download, mode = "wb")
 # Read in USGS REST files just downloaded
 # Use `read.table()` for reading in files, use `map_df()` to make it iterative 
 # Specify `header = TRUE` to indicate first row should be column headers 
+# Assign file name as column (`set_names()`) and (.id = source) and then remove everything except the state abbreviation
   
 usgs_rest_all <- 
   list.files(path = here::here("urls", "usgs_rest"), 
              pattern = "*.tsv", full.names = T) %>% 
-  map_df(~read.table(., fill = TRUE, header = TRUE), .id = "source") %>% 
-  filter(!agency_cd == "5s")
-
+  set_names() %>% 
+  map_df(~read.table(., fill = TRUE, header = TRUE, sep = "\t", na.strings = c("NA", "")), .id = "source") %>% 
+  filter(!agency_cd == "5s") %>% 
+  mutate(id = str_remove(source, "C:/Users/aeliz/Dropbox/Documents/github/usa_groundwater_data/urls/usgs_rest/usgs_rest_"), 
+         id = str_remove(id, ".tsv")) %>% 
+  select(-source)
 
 # Read in USGS Groundwater for the Nation files just downloaded
 # Use `fread()` for reading in files, use `map_df()` to make it iterative
 # Specify `header = TRUE` to indicate first row should be column headers
+# Assign file name as column (`set_names()`) and (.id = source) and then remove everything except the state abbreviation
 
 usgs_gwn_all <-
     list.files(path = here::here("urls", "usgs_gwn"),
                pattern = "*.tsv", full.names = T) %>% 
-    map_df(~fread(., header = TRUE), .id = "source") %>% 
-             filter(!agency_cd == "5s")
+  set_names() %>% 
+    map_df(~read.table(., fill = TRUE, header = TRUE, sep = "\t", quote = "", na.strings = c("NA", "")), .id = "source") %>% 
+    filter(!agency_cd == "5s") %>% 
+    mutate(id = str_remove(source, "C:/Users/aeliz/Dropbox/Documents/github/usa_groundwater_data/urls/usgs_gwn/usgs_gwn_"), 
+         id = str_remove(id, ".tsv")) %>% 
+    select(-source, -"X..DOCTYPE.html.")
 
 ```
 
@@ -153,9 +162,13 @@ entire_usa_2021 <- full_join_usgs %>%
     level_month = lubridate::month(level_date, label = TRUE),
     level_year = lubridate::year(level_date))
   
+  
 ```
 
+### Step 4. Write file to tsv 
+
 ```{r}
-exp <- readr::read_tsv("entire_usgs_usa.txt")
+write_tsv(entire_usa_2021, "entire_usa_2021.txt")
 ```
+
 
