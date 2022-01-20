@@ -76,11 +76,12 @@ states <- c("ak", "al", "ar", "az", "ca", "co", "ct", "dc", "de", "fl", "ga", "g
   
 2. USGS REST Services Data Download 
 
-You must update this URL by date (most recent date)
+You must update this URL by date (most recent date, or date desired) 
 
 ```{r}
 # Designate URL to search for (USGS REST Services), with {state} added to iterate through state abbreviations/different URLS 
 
+# Change date from 2021-12-01 to desired modern date (start date set at 1800-01-01)
 url_usgs_rest <- glue("https://waterservices.usgs.gov/nwis/gwlevels/?format=rdb&stateCd={states}&startDT=1800-01-01&endDT=2021-12-01&siteType=GW&siteStatus=all")
 
 # Designate a place for downloaded files to live (create folder, and designate name for files once downloaded)
@@ -113,11 +114,14 @@ walk2(url_usgs_gwn, names_usgs_gwn, curl_download, mode = "wb")
 
 ### Step 2. Read in Files 
 
+**NOTE** Change file path to personal computer file path 
+
 ```{r}
 # Read in USGS REST files just downloaded
 # Use `read.table()` for reading in files, use `map_df()` to make it iterative 
 # Specify `header = TRUE` to indicate first row should be column headers 
 # Assign file name as column (`set_names()`) and (.id = source) and then remove everything except the state abbreviation
+# **NOTE** You must change the file path to your own computer file path to remove 
   
 usgs_rest_all <- 
   list.files(path = here::here("urls", "usgs_rest"), 
@@ -125,7 +129,7 @@ usgs_rest_all <-
   set_names() %>% 
   map_df(~read.table(., fill = TRUE, header = TRUE, sep = "\t", na.strings = c("NA", "")), .id = "source") %>% 
   filter(!agency_cd == "5s") %>% 
-  mutate(id = str_remove(source, "C:/Users/aeliz/Dropbox/Documents/github/usa_groundwater_data/urls/usgs_rest/usgs_rest_"), 
+  mutate(id = str_remove(source, "C:/Users/aeliz/Dropbox/Documents/github/usa_groundwater_data/urls/usgs_rest/usgs_rest_"), # Change this file path
          id = str_remove(id, ".tsv")) %>% 
   select(-source)
 
@@ -133,6 +137,7 @@ usgs_rest_all <-
 # Use `fread()` for reading in files, use `map_df()` to make it iterative
 # Specify `header = TRUE` to indicate first row should be column headers
 # Assign file name as column (`set_names()`) and (.id = source) and then remove everything except the state abbreviation
+# **NOTE** You must change the file path to your own computer file path to remove 
 
 usgs_gwn_all <-
     list.files(path = here::here("urls", "usgs_gwn"),
@@ -140,7 +145,7 @@ usgs_gwn_all <-
   set_names() %>% 
     map_df(~read.table(., fill = TRUE, header = TRUE, sep = "\t", quote = "", na.strings = c("NA", "")), .id = "source") %>% 
     filter(!agency_cd == "5s") %>% 
-    mutate(id = str_remove(source, "C:/Users/aeliz/Dropbox/Documents/github/usa_groundwater_data/urls/usgs_gwn/usgs_gwn_"), 
+    mutate(id = str_remove(source, "C:/Users/aeliz/Dropbox/Documents/github/usa_groundwater_data/urls/usgs_gwn/usgs_gwn_"), # Change this file path 
          id = str_remove(id, ".tsv")) %>% 
     select(-source, -"X..DOCTYPE.html.")
 
