@@ -10,9 +10,9 @@ The code automatically downloads these data from USGS sites using URLs with litt
 
 ### Data sources 
 
-#### USGS
+#### United States Geological Survey 
 
-USGS data has been obtained through two different download portals:
+USGS data are obtained through two different download portals:
 
 - USGS Groundwater Levels REST Web Service URL Generation Tool
   - https://waterservices.usgs.gov/rest/GW-Levels-Test-Tool.html
