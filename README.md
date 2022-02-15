@@ -2,9 +2,9 @@
 
 ## Goals and Objectives for the project 
 
-This project compiles existing groundwater data in the United States of America from the United States Geological Survey (USGS) across 50 states and 4 territories (District of Columbia, Guam, Puerto Rico, Virgin Islands). 
+This project compiles existing groundwater data in the United States of America from the United States Geological Survey (USGS) across 50 states and 4 territories (District of Columbia, Guam, Puerto Rico, Virgin Islands). This code automatically downloads historical manually recorded groundwater levels from hydrological sites served by the USGS (~905,706 sites). 
 
-The code automatically downloads these data from USGS sites using URLs with little user input. 
+The code automatically downloads these data from USGS sites using URLs with little user input, tidies data, and merges all data into one large file for the United States.  
 
 ***Please note:*** This is an ongoing project and not in its finalized version. Some of the code may contain bugs and areas of work-in-progress. If you catch any bugs, please feel free to report them to me via github. 
 
