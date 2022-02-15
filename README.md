@@ -63,15 +63,15 @@ Fork and clone this github repo. In R/RStudio, use the Rmd `usgs_data_import_wra
 
 There is some user input required to run this code. You will need to create three folders and change parameters to your liking (date). 
 
-Step 1. Create three folders in your Rproject.  
-  a. "urls" (this folder contains the two folders below) 
-    - "usgs_rest" (This is where the code will put raw data files from USGS REST) 
-    - "usgs_gwn" (This is where the code will put raw data files from USGS Groundwater for the Nation) 
+**Step 1.** Create three folders in your Rproject.  
+  a. "urls" (this folder contains the two folders below)   
+    - "usgs_rest" (This is where the code will put raw data files from USGS REST)   
+    - "usgs_gwn" (This is where the code will put raw data files from USGS Groundwater for the Nation)   
     
-*"urls" folder contains the two folders "usgs_rest" and "usgs_gwn", both empty folders (do not include quotations in naming) 
+*"urls" folder contains the two folders "usgs_rest" and "usgs_gwn", both empty folders (do not include quotations in naming)* 
 
-Step 2. Change Date and other Parameters 
-  a. Change the date to download data in your preferred date range 
-    *Currently set to download data from 01-01-1800 to 12-01-2021* 
-  b. Add or change any parameters by editing the URL 
+**Step 2.** Change Date and other Parameters 
+  a. Change the date to download data in your preferred date range   
+    *Currently set to download data from 01-01-1800 to 12-01-2021*   
+  b. Add or change any parameters by editing the URL     
     *USGS notes on editing the URL here: https://waterservices.usgs.gov/rest/GW-Levels-Service.html*
